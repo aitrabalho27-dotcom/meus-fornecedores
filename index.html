@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Dark Mode v3</title>
+    <title>Hub de Fornecedores - Dark Mode v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
@@ -12,8 +12,8 @@
         .btn-primary { background-color: #10b981; color: white; transition: all 0.2s; }
         .btn-primary:hover { background-color: #34d399; transform: translateY(-1px); }
         
-        .btn-outline { border: 1px solid #475569; color: #cbd5e1; background: #1e293b; }
-        .btn-outline:hover { background: #334155; color: #ffffff; }
+        .btn-outline { border: 1px solid #475569; color: #cbd5e1; background: #1e293b; transition: all 0.2s; }
+        .btn-outline:hover { background: #334155; color: #ffffff; border-color: #64748b; }
         
         .input-padrao {
             width: 100%;
@@ -28,17 +28,12 @@
             transition: all 0.2s;
             text-transform: uppercase;
         }
-        .input-padrao:focus {
-            border-color: #10b981;
-            background-color: #1e293b;
-        }
-        
+        .input-padrao:focus { border-color: #10b981; background-color: #1e293b; }
+        #i_email { text-transform: lowercase; }
+
         #appSection { display: none; }
+        .contact-icon { font-size: 11px; margin-right: 6px; vertical-align: middle; }
         
-        /* Ajuste para que os ícones fiquem visíveis no Dark Mode */
-        .contact-icon { font-size: 11px; margin-right: 6px; opacity: 1; vertical-align: middle; }
-        
-        /* TABELA PADRONIZADA (COM ÍCONES) */
         thead { background-color: #0f172a; }
         tr:hover { background-color: #334155 !important; }
         
@@ -52,12 +47,13 @@
     <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
         <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl w-full max-w-sm text-center">
             <h2 class="text-xl font-black mb-6 text-slate-100 uppercase tracking-tight">Acesso Restrito</h2>
-            <input type="password" id="passInput" placeholder="Senha" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl mb-4 text-center text-white outline-none">
+            <input type="password" id="passInput" placeholder="Senha" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl mb-4 text-center text-white outline-none focus:ring-2 focus:ring-emerald-500">
             <button onclick="validar()" class="w-full btn-primary font-bold p-4 rounded-xl shadow-lg uppercase">ENTRAR</button>
         </div>
     </div>
 
     <div id="appSection" class="min-h-screen flex flex-col lg:flex-row">
+        
         <aside class="w-full lg:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col">
             <div class="mb-8">
                 <h1 class="text-xl font-black text-emerald-500 uppercase italic">Hub de<br>Fornecedores</h1>
@@ -105,7 +101,7 @@
                         <div class="flex gap-2">
                             <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400">🖊️ EDITAR</button>
                             <button onclick="removerSelecionados()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-red-400">🗑️ EXCLUIR</button>
-                            <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400">📋 E-MAILS</button>
+                            <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400">📋 COPIAR E-MAILS</button>
                         </div>
                     </div>
 
@@ -172,17 +168,12 @@
         function renderizar() {
             const termo = document.getElementById('i_busca_global').value.toLowerCase();
             const container = document.getElementById('tabelaBody');
-            
             const filtrados = baseDados.filter(f => 
-                f.nome.toLowerCase().includes(termo) ||
-                f.contato.toLowerCase().includes(termo) ||
-                f.email.toLowerCase().includes(termo) ||
-                f.tel.toLowerCase().includes(termo) ||
+                f.nome.toLowerCase().includes(termo) || f.contato.toLowerCase().includes(termo) ||
+                f.email.toLowerCase().includes(termo) || f.tel.toLowerCase().includes(termo) ||
                 f.material.toLowerCase().includes(termo)
             );
-            
             document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
-
             container.innerHTML = filtrados.map(f => `
                 <tr class="hover:bg-slate-800 border-b border-slate-800">
                     <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
@@ -203,6 +194,20 @@
             });
             document.getElementById('btnSalvar').innerText = "✅ Salvar Fornecedor";
             renderizar();
+        }
+
+        function copiarEmails() {
+            const selecionados = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => 
+                baseDados.find(f => f.id == c.value)?.email
+            ).filter(e => e);
+            
+            const emails = selecionados.length ? selecionados.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
+            
+            if(!emails) return alert("Nenhum e-mail encontrado!");
+            
+            navigator.clipboard.writeText(emails).then(() => {
+                alert(selecionados.length ? "E-mails selecionados copiados!" : "Todos os e-mails da lista copiados!");
+            });
         }
 
         function iniciarEdicao() {
