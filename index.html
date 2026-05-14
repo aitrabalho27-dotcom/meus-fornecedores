@@ -3,67 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores</title>
+    <title>Hub de Fornecedores - Oficial</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; }
-        #loginSection { background-color: #0f172a; position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; }
-        .card { background: white; padding: 2rem; border-radius: 1rem; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body>
+<body class="bg-[#F7F9FB] text-[#191C1E] min-h-screen">
 
     <!-- TELA DE LOGIN -->
-    <div id="loginSection">
-        <div class="card">
-            <h2 style="font-weight: 900; margin-bottom: 1.5rem; color: #1e293b;">HUB DE FORNECEDORES</h2>
-            <input type="password" id="passInput" placeholder="Senha de Acesso" 
-                   style="width: 100%; padding: 1rem; border: 1px solid #ccc; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center; font-size: 1.2rem;">
-            
-            <button type="button" onclick="validarAcesso()" 
-                    style="width: 100%; background: #10b981; color: white; font-weight: bold; padding: 1rem; border: none; border-radius: 0.5rem; cursor: pointer;">
-                ENTRAR NO SISTEMA
-            </button>
+    <div id="loginSection" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900 p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-black mb-6 text-slate-800">HUB DE FORNECEDORES</h2>
+            <input type="password" id="passInput" placeholder="Senha de Acesso" class="w-full p-4 border rounded-xl mb-4 text-center outline-none focus:ring-2 focus:ring-emerald-500 text-lg">
+            <button type="button" onclick="validarAcesso()" class="w-full bg-emerald-600 text-white font-bold p-4 rounded-xl hover:bg-emerald-700 transition-all shadow-lg active:scale-95">ENTRAR NO SISTEMA</button>
         </div>
     </div>
 
-    <!-- SISTEMA -->
-    <div id="appSection" style="display: none; padding: 20px;">
-        <h1 style="font-weight: 900;">Painel de Gestão</h1>
-        <p>Acesso liberado com sucesso.</p>
-        <button onclick="location.reload()" style="background: #ef4444; color: white; padding: 10px; border-radius: 5px; border: none; cursor: pointer;">SAIR</button>
+    <!-- SISTEMA PRINCIPAL -->
+    <div id="appSection" style="display: none;" class="flex flex-col lg:flex-row min-h-screen">
         
-        <div style="margin-top: 20px; border: 1px solid #ddd; padding: 20px; border-radius: 10px; background: white;">
-            <p><strong>Aguardando dados...</strong></p>
-            <p>Use o formulário abaixo para cadastrar seu primeiro fornecedor.</p>
-        </div>
+        <!-- SIDEBAR (Conforme suas fotos) -->
+        <aside class="w-full lg:w-72 bg-slate-900 text-gray-300 flex flex-col p-6 shadow-xl">
+            <div class="mb-10">
+                <h1 class="text-white text-xl font-black leading-none">Hub de Fornecedores</h1>
+                <p class="text-[10px] uppercase tracking-tighter text-gray-500 mt-2">Gestão de Materiais</p>
+            </div>
+            <nav class="flex-1 space-y-2">
+                <div class="p-3 bg-white/5 rounded-lg border-l-4 border-emerald-500 text-white flex items-center gap-3">
+                    <span class="text-lg">📦</span> <span class="text-sm font-bold">FORNECEDORES</span>
+                </div>
+                <div class="mt-10 mb-2 px-3 text-[10px] font-black text-gray-600 uppercase">Banco de Dados</div>
+                <button onclick="exportData()" class="w-full p-3 rounded-lg flex items-center gap-3 text-sm hover:bg-white/10 transition-all text-left">📥 EXPORTAR BACKUP</button>
+                <label class="w-full p-3 rounded-lg flex items-center gap-3 text-sm cursor-pointer hover:bg-white/10 transition-all">
+                    📤 IMPORTAR E SOMAR
+                    <input type="file" accept=".json" class="hidden" onchange="importData(event)">
+                </label>
+            </nav>
+            <button onclick="location.reload()" class="mt-auto p-4 flex items-center gap-3 text-xs font-bold text-gray-500 hover:text-white transition-all text-left">
+                <span class="bg-gray-800 p-2 rounded-full text-white px-2">N</span> SAIR DO SISTEMA
+            </button>
+        </aside>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-4 lg:p-8">
+            <!-- CENTRO DE AÇÃO -->
+            <section class="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm mb-8 relative overflow-hidden">
+                <div class="absolute right-[-20px] top-[-10px] opacity-5 text-6xl font-black italic uppercase">Hub</div>
+                <h3 class="text-2xl font-bold mb-1 text-slate-800">Centro de Ação</h3>
+                <p class="text-gray-400 text-sm mb-8 font-semibold">Registre ou pesquise fornecedores e especificações técnicas.</p>
+
+                <form id="mainForm" onsubmit="event.preventDefault(); salvarFornecedor();" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <input type="hidden" id="editId">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Fornecedor (Empresa)</label>
+                        <input type="text" id="comp" placeholder="Ex: Metalúrgica Gerdau" required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Contato Responsável</label>
+                        <input type="text" id="cont" placeholder="Ex: João Silva" required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Telefone</label>
+                        <input type="text" id="tel" placeholder="+55 (47) 00000-0000" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">E-mail Corporativo</label>
+                        <input type="email" id="mail" placeholder="fornecedor@exemplo.com.br" required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
+                    </div>
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Especificação do Material</label>
+                        <input type="text" id="mat" placeholder="Ex: Inox 304, Termopares JUMO, Cabos Cat6..." required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
+                    </div>
+
+                    <div class="lg:col-span-3 flex flex-wrap justify-end gap-3 mt-4 border-t pt-6">
+                        <button type="button" onclick="limparFormulario()" class="px-8 py-3 text-xs font-black uppercase text-gray-400 hover:text-gray-600">Limpar</button>
+                        <button type="button" onclick="pesquisarFornecedor()" class="px-8 py-3 bg-slate-800 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700">🔍 PESQUISAR</button>
+                        <button type="submit" id="btnSalvar" class="px-8 py-3 bg-emerald-500 text-white rounded-xl text-xs font-black uppercase shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">✅ CADASTRAR FORNECEDOR</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- LISTAGEM -->
+            <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                    <div class="flex items-center gap-4">
+                        <h3 class="font-bold text-gray-800 uppercase text-xs tracking-widest">Lista de Fornecedores</h3>
+                        <span id="countDisplay" class="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">0 ENCONTRADOS</span>
+                    </div>
+                    <button onclick="copiarEmails()" class="text-xs font-bold text-emerald-600 hover:bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100 transition-all">📋 Copiar E-mails</button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 border-b">
+                                <th class="p-4">Fornecedor</th>
+                                <th class="p-4 text-center">Contato / E-mail</th>
+                                <th class="p-4 text-center">Telefone</th>
+                                <th class="p-4">Material</th>
+                                <th class="p-4 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listBody" class="divide-y divide-gray-100 text-sm"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
     </div>
 
     <script>
-        function validarAcesso() {
-            // Pegamos o valor direto do campo no momento do clique
-            var campoSenha = document.getElementById('passInput');
-            var senhaDigitada = campoSenha.value;
-            
-            console.log("Tentativa de login iniciada..."); // Isso aparece no F12
+        const SENHA_MESTRA = "526385";
+        let db = JSON.parse(localStorage.getItem('db_hub_comprador') || '[]');
 
-            if (senhaDigitada === "526385") {
-                // Comando direto para esconder e mostrar
+        // LOGIN (Estrutura validada no teste)
+        function validarAcesso() {
+            const digitado = document.getElementById('passInput').value;
+            if(digitado === SENHA_MESTRA) {
                 document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('appSection').style.display = 'block';
+                document.getElementById('appSection').style.display = 'flex';
+                renderizarTabela();
             } else {
-                alert("Senha incorreta! Verifique os números.");
-                campoSenha.value = ""; // Limpa o campo
-                campoSenha.focus();    // Devolve o cursor para o campo
+                alert("Senha Incorreta!");
+                document.getElementById('passInput').value = "";
             }
         }
 
-        // Permite entrar apertando a tecla ENTER
-        document.getElementById('passInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                validarAcesso();
+        // ENTER NO LOGIN
+        document.getElementById('passInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') validarAcesso(); });
+
+        function renderizarTabela(dadosParaMostrar = db) {
+            const listBody = document.getElementById('listBody');
+            document.getElementById('countDisplay').innerText = ${dadosParaMostrar.length} ENCONTRADOS;
+            
+            listBody.innerHTML = dadosParaMostrar.map(s => `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="p-4">
+                        <div class="font-bold text-slate-800">${s.comp}</div>
+                    </td>
+                    <td class="p-4 text-center">
+                        <div class="text-xs font-semibold text-slate-600">${s.cont}</div>
+                        <div class="text-[10px] text-blue-500 italic">${s.mail}</div>
+                    </td>
+                    <td class="p-4 text-center text-[11px] font-mono text-slate-500">${s.tel || '-'}</td>
+                    <td class="p-4"><span class="bg-slate-100 text-[10px] px-2 py-1 rounded border text-slate-500 font-bold uppercase">${s.mat}</span></td>
+                    <td class="p-4 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="editarFornecedor('${s.id}')" class="text-amber-500 hover:bg-amber-50 px-3 py-1 rounded border border-amber-100 text-[10px] font-black uppercase">Editar</button>
+                            <button onclick="excluirFornecedor('${s.id}')" class="text-rose-500 hover:bg-rose-50 px-3 py-1 rounded border border-rose-100 text-[10px] font-black uppercase">Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            localStorage.setItem('db_hub_comprador', JSON.stringify(db));
+        }
+
+        function salvarFornecedor() {
+            const id = document.getElementById('editId').value;
+            const novo = {
+                id: id || Date.now().toString(),
+                comp: document.getElementById('comp').value,
+                cont: document.getElementById('cont').value,
+                tel: document.getElementById('tel').value,
+                mail: document.getElementById('mail').value,
+                mat: document.getElementById('mat').value
+            };
+
+            if(id) {
+                db = db.map(item => item.id === id ? novo : item);
+            } else {
+                db.unshift(novo);
             }
-        });
+            limparFormulario();
+            renderizarTabela();
+        }
+
+        function editarFornecedor(id) {
+            const s = db.find(x => x.id === id);
+            document.getElementById('editId').value = s.id;
+            document.getElementById('comp').value = s.comp;
+            document.getElementById('cont').value = s.cont;
+            document.getElementById('tel').value = s.tel;
+            document.getElementById('mail').value = s.mail;
+            document.getElementById('mat').value = s.mat;
+            document.getElementById('btnSalvar').innerText = "💾 ATUALIZAR DADOS";
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function excluirFornecedor(id) {
+            if(confirm('Deseja realmente remover este fornecedor?')) {
+                db = db.filter(s => s.id !== id);
+                renderizarTabela();
+            }
+        }
+
+        function pesquisarFornecedor() {
+            const termo = document.getElementById('comp').value.toLowerCase();
+            const filtrados = db.filter(s => s.comp.toLowerCase().includes(termo) || s.mat.toLowerCase().includes(termo));
+            renderizarTabela(filtrados);
+        }
+
+        function limparFormulario() {
+            document.getElementById('mainForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('btnSalvar').innerText = "✅ CADASTRAR FORNECEDOR";
+            renderizarTabela();
+        }
+
+        function copiarEmails() {
+            const emails = db.map(s => s.mail).join('; ');
+            navigator.clipboard.writeText(emails);
+            alert("E-mails copiados para a área de transferência!");
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = backup_fornecedores_${new Date().toLocaleDateString()}.json;
+            a.click();
+        }
+
+        function importData(ev) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const novos = JSON.parse(e.target.result);
+                let somados = 0;
+                novos.forEach(n => {
+                    if(!db.find(s => s.mail.toLowerCase() === n.mail.toLowerCase())) {
+                        db.push(n);
+                        somados++;
+                    }
+                });
+                renderizarTabela();
+                alert(${somados} novos fornecedores foram somados à sua base!);
+            };
+            reader.readAsText(ev.target.files[0]);
+        }
     </script>
 </body>
 </html>
