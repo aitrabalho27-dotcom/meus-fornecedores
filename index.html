@@ -1,415 +1,402 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Offline Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        [v-cloak] { display: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
-</head>
-<body class="bg-[#F7F9FB] text-[#191C1E] antialiased">
-    <div id="app" v-cloak>
-        <!-- Login Screen -->
-        <div v-if="!isAuthenticated" class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-            <div class="max-w-md w-full bg-white rounded-2xl shadow-xl shadow-slate-200 border border-slate-100 p-8">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-[#10B981]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="package" class="text-[#10B981] w-8 h-8"></i>
-                    </div>
-                    <h1 class="text-2xl font-black text-slate-900 leading-none">Hub de Fornecedores</h1>
-                    <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mt-2">Acesso Reservado</p>
-                </div>
+'use client';
 
-                <form @submit.prevent="handleLogin" class="space-y-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Senha de Acesso</label>
-                        <input 
-                            type="password" 
-                            v-model="loginPass"
-                            placeholder="Digite a senha..."
-                            class="w-full h-12 px-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition-all text-center text-lg tracking-widest"
-                        >
-                    </div>
-                    <button type="submit" class="w-full h-12 bg-[#10B981] text-white font-bold rounded-xl hover:bg-[#059669] transition-all shadow-lg shadow-[#10B981]/20">
-                        Entrar no Dashboard
-                    </button>
-                    <p v-if="loginError" class="text-rose-500 text-xs font-semibold text-center">{{ loginError }}</p>
-                </form>
+import React, { useState, useEffect, useMemo } from 'react';
+import Login from '@/components/Login';
+import { 
+  Search, 
+  Plus, 
+  Trash2, 
+  Edit2, 
+  CheckCircle, 
+  X, 
+  Copy, 
+  ChevronLeft, 
+  ChevronRight, 
+  Settings, 
+  Bell, 
+  HelpCircle,
+  LogOut,
+  Package,
+  SearchCode,
+  Download,
+  Upload,
+  Users
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '@/lib/utils';
+
+// Tipagem dos Dados
+interface Supplier {
+  id: string;
+  companyName: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  materialType: string;
+  createdAt: number;
+}
+
+// Auxiliar para normalizar buscas (remover acentos e padronizar)
+const normalize = (val: string) => 
+  val ? val.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+
+// Dados Iniciais (Exemplos)
+const INITIAL_SUPPLIERS: Supplier[] = [
+  {
+    id: '1',
+    companyName: 'Usiminas S.A.',
+    contactPerson: 'Carlos Mendes',
+    phone: '(31) 3499-8000',
+    email: 'carlos.mendes@usiminas.com.br',
+    materialType: 'Aço Carbono SAE 1020',
+    createdAt: Date.now() - 1000000,
+  },
+  {
+    id: '2',
+    companyName: 'ArcelorMittal',
+    contactPerson: 'Ricardo Oliveira',
+    phone: '(27) 3348-1333',
+    email: 'comercial@arcelor.com',
+    materialType: 'Bobina Galvanizada',
+    createdAt: Date.now() - 4000000,
+  },
+];
+
+export default function SupplierDashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Controle de Autenticação (Senha: 526385)
+  useEffect(() => {
+    const authStatus = localStorage.getItem('hub-auth');
+    setIsAuthenticated(authStatus === 'true');
+  }, []);
+
+  const handleLogin = () => {
+    localStorage.setItem('hub-auth', 'true');
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('hub-auth');
+    setIsAuthenticated(false);
+  };
+
+  // Carregamento e Persistência Local
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    setLoading(true);
+    const saved = localStorage.getItem('hub_fornecedores_db');
+    if (saved) {
+      try {
+        setSuppliers(JSON.parse(saved));
+      } catch (e) {
+        setSuppliers([]);
+      }
+    } else {
+      setSuppliers(INITIAL_SUPPLIERS);
+      localStorage.setItem('hub_fornecedores_db', JSON.stringify(INITIAL_SUPPLIERS));
+    }
+    setLoading(false);
+  }, [isAuthenticated]);
+
+  const syncToStorage = (newSuppliers: Supplier[]) => {
+    setSuppliers(newSuppliers);
+    localStorage.setItem('hub_fornecedores_db', JSON.stringify(newSuppliers));
+  };
+
+  const [searchForm, setSearchForm] = useState({
+    companyName: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
+    materialType: '',
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [copiedEmails, setCopiedEmails] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Estado da Paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Filtro de Busca Inteligente
+  const filteredSuppliers = useMemo(() => {
+    return suppliers.filter(s => {
+      const matches = (fieldVal: string, searchVal: string) => {
+        const normalizedField = normalize(fieldVal);
+        const normalizedSearch = normalize(searchVal);
+        if (!normalizedSearch) return true;
+        const words = normalizedSearch.split(' ').filter(Boolean);
+        return words.every(word => normalizedField.includes(word));
+      };
+      return (
+        matches(s.companyName, searchForm.companyName) &&
+        matches(s.contactPerson, searchForm.contactPerson) &&
+        matches(s.phone, searchForm.phone) &&
+        matches(s.email, searchForm.email) &&
+        matches(s.materialType, searchForm.materialType)
+      );
+    });
+  }, [suppliers, searchForm]);
+
+  // Lista Paginada
+  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+  const paginatedSuppliers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredSuppliers.slice(start, start + itemsPerPage);
+  }, [filteredSuppliers, currentPage]);
+
+  useEffect(() => { setCurrentPage(1); }, [searchForm]);
+
+  // Handlers Principais
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setSearchForm(prev => ({ ...prev, [name]: value }));
+    if (name === 'materialType') setShowSuggestions(true);
+  };
+
+  const clearForm = () => {
+    setSearchForm({ companyName: '', contactPerson: '', phone: '', email: '', materialType: '' });
+    setEditingId(null);
+    setShowSuggestions(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let nextSuppliers = [...suppliers];
+    if (editingId) {
+      nextSuppliers = nextSuppliers.map(s => s.id === editingId ? { ...s, ...searchForm } : s);
+      setEditingId(null);
+    } else {
+      const newSupplier = { ...searchForm, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now() };
+      nextSuppliers = [newSupplier, ...nextSuppliers];
+    }
+    syncToStorage(nextSuppliers);
+    clearForm();
+  };
+
+  // Exportar Backup
+  const exportData = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(suppliers));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `hub_fornecedores_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  // Importar com Mesclagem (Evita duplicados)
+  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (Array.isArray(json)) {
+          const existingEmails = new Set(suppliers.map(s => normalize(s.email)));
+          const existingNames = new Set(suppliers.map(s => normalize(s.companyName)));
+          const newEntries: Supplier[] = [];
+          let duplicates = 0;
+          json.forEach((item: any) => {
+            if (!item.companyName || !item.email) return;
+            const normEmail = normalize(item.email);
+            const normName = normalize(item.companyName);
+            if (!existingEmails.has(normEmail) && !existingNames.has(normName)) {
+              newEntries.push({ ...item, id: item.id || Math.random().toString(36).substr(2, 9), createdAt: item.createdAt || Date.now() });
+              existingEmails.add(normEmail);
+              existingNames.add(normName);
+            } else { duplicates++; }
+          });
+          if (newEntries.length > 0) {
+            syncToStorage([...newEntries, ...suppliers]);
+            alert(`${newEntries.length} novos fornecedores importados. ${duplicates > 0 ? `(${duplicates} duplicados ignorados)` : ''}`);
+          } else { alert(`Nenhum novo fornecedor foi adicionado. Os dados já existem.`); }
+        }
+      } catch (err) { alert("Erro ao ler o arquivo JSON."); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+
+  const confirmBulkDelete = () => {
+    const nextSuppliers = suppliers.filter(s => !selectedIds.has(s.id));
+    syncToStorage(nextSuppliers);
+    setSelectedIds(new Set());
+    setIsBulkDeleteModalOpen(false);
+  };
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredSuppliers.length) { setSelectedIds(new Set()); } 
+    else { setSelectedIds(new Set(filteredSuppliers.map(s => s.id))); }
+  };
+
+  if (isAuthenticated === null) return null;
+  if (!isAuthenticated) return <Login onLogin={handleLogin} />;
+
+  return (
+    <div className="flex min-h-screen bg-[#F7F9FB] text-[#191C1E] antialiased">
+      {/* Sidebar */}
+      <aside className={cn(
+        "fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 flex flex-col pt-20 pb-4 z-50 transition-transform lg:translate-x-0",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="px-6 mb-12">
+          <h1 className="text-xl font-black text-slate-900 leading-none">Hub de Fornecedores</h1>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mt-2">Gestão Simplificada</p>
+        </div>
+        
+        <nav className="flex-1 px-4 space-y-1">
+          <button className="w-full flex items-center px-4 py-3 text-slate-900 border-r-2 border-[#10B981] bg-white font-bold text-xs uppercase tracking-widest">
+            <Package className="w-5 h-5 mr-3" />
+            Fornecedores
+          </button>
+        </nav>
+
+        <div className="px-4 mb-4">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 mb-3">Banco de Dados</p>
+          <div className="space-y-1">
+            <button onClick={exportData} className="w-full flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-emerald-50 rounded-lg text-[11px] font-bold uppercase transition-all">
+              <Download size={14} /> Exportar Backup
+            </button>
+            <label className="w-full flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-amber-50 rounded-lg text-[11px] font-bold uppercase cursor-pointer">
+              <Upload size={14} /> Importar Dados
+              <input type="file" accept=".json" onChange={importData} className="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div className="px-4 mt-auto border-t border-slate-200 pt-4">
+          <button onClick={handleLogout} className="flex items-center w-full px-4 py-3 text-slate-500 hover:text-rose-600 text-xs uppercase font-bold">
+            <LogOut className="w-5 h-5 mr-3" /> Sair
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64">
+        <header className="flex justify-between items-center w-full px-8 h-16 bg-white border-b border-slate-200 sticky top-0 z-50">
+          <span className="font-bold text-slate-900">Painel Geral</span>
+          <div className="flex items-center gap-4">
+            <div className="h-8 w-8 rounded-full bg-slate-200" />
+          </div>
+        </header>
+
+        <div className="p-8 max-w-7xl mx-auto space-y-8">
+          {/* Cadastro & Busca */}
+          <section className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+            <h2 className="text-xl font-bold mb-6">Centro de Operações</h2>
+            <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-6">
+              <div className="col-span-12 md:col-span-4 space-y-2">
+                <label className="text-[10px] font-bold uppercase text-slate-500">Fornecedor</label>
+                <input type="text" name="companyName" value={searchForm.companyName} onChange={handleInputChange} className="w-full h-11 px-4 border rounded-lg text-sm" placeholder="Nome da empresa" />
+              </div>
+              <div className="col-span-12 md:col-span-4 space-y-2">
+                <label className="text-[10px] font-bold uppercase text-slate-500">Contato</label>
+                <input type="text" name="contactPerson" value={searchForm.contactPerson} onChange={handleInputChange} className="w-full h-11 px-4 border rounded-lg text-sm" placeholder="Nome do contato" />
+              </div>
+              <div className="col-span-12 md:col-span-4 space-y-2">
+                <label className="text-[10px] font-bold uppercase text-slate-500">E-mail</label>
+                <input type="email" name="email" value={searchForm.email} onChange={handleInputChange} className="w-full h-11 px-4 border rounded-lg text-sm" placeholder="email@exemplo.com" />
+              </div>
+              <div className="col-span-12 space-y-2">
+                <label className="text-[10px] font-bold uppercase text-slate-500">Tipo de Material / Especificação</label>
+                <textarea name="materialType" value={searchForm.materialType} onChange={handleInputChange} rows={2} className="w-full p-4 border rounded-lg text-sm" placeholder="Descreva os materiais..." />
+              </div>
+              <div className="col-span-12 flex justify-end gap-3 pt-4">
+                <button type="button" onClick={clearForm} className="px-8 py-3 bg-slate-100 text-slate-500 border font-bold rounded-xl hover:bg-slate-200 text-xs uppercase tracking-widest transition-all">Limpar</button>
+                <button type="submit" className={cn(
+                  "px-8 py-3 text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg",
+                  editingId ? "bg-amber-500 hover:bg-amber-600" : "bg-[#10B981] hover:bg-[#059669]"
+                )}>
+                  {editingId ? 'Salvar Edição' : 'Cadastrar novo'}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          {/* Listagem */}
+          <section className="bg-white border rounded-xl overflow-hidden shadow-sm">
+            <div className="p-6 border-b flex justify-between items-center bg-slate-50/50">
+              <h3 className="font-bold">Listagem de Fornecedores</h3>
+              <div className="flex gap-2">
+                <button onClick={() => setIsBulkDeleteModalOpen(true)} className="px-4 py-2 border border-rose-200 text-rose-600 bg-white rounded-lg text-xs font-bold hover:bg-rose-50 transition-all flex items-center gap-2">
+                  <Trash2 size={14} /> Excluir Selecionados ({selectedIds.size})
+                </button>
+              </div>
             </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 text-[10px] font-bold uppercase text-slate-400">
+                  <tr>
+                    <th className="p-4 w-10"><input type="checkbox" checked={selectedIds.size === paginatedSuppliers.length && paginatedSuppliers.length > 0} onChange={toggleSelectAll} /></th>
+                    <th className="p-4">Empresa</th>
+                    <th className="p-4">Contato</th>
+                    <th className="p-4">E-mail</th>
+                    <th className="p-4">Material</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y text-sm">
+                  {paginatedSuppliers.map(s => (
+                    <tr key={s.id} className="hover:bg-slate-50/50">
+                      <td className="p-4"><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} /></td>
+                      <td className="p-4 font-bold">{s.companyName}</td>
+                      <td className="p-4">{s.contactPerson}</td>
+                      <td className="p-4 text-slate-500">{s.email}</td>
+                      <td className="p-4"><span className="px-2 py-1 bg-slate-100 rounded text-[11px] border">{s.materialType}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Paginação */}
+            <div className="p-4 border-t flex justify-between items-center text-xs text-slate-500">
+              <p>Mostrando {paginatedSuppliers.length} de {filteredSuppliers.length} resultados</p>
+              <div className="flex gap-1">
+                <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="w-8 h-8 border rounded flex items-center justify-center hover:bg-slate-50 disabled:opacity-30"><ChevronLeft size={14} /></button>
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button key={i} onClick={() => setCurrentPage(i + 1)} className={cn("w-8 h-8 border rounded font-bold", currentPage === i + 1 ? "bg-emerald-50 border-[#10B981] text-[#10B981]" : "hover:bg-slate-50")}>{i + 1}</button>
+                  ))}
+                </div>
+                <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="w-8 h-8 border rounded flex items-center justify-center hover:bg-slate-50 disabled:opacity-30"><ChevronRight size={14} /></button>
+              </div>
+            </div>
+          </section>
         </div>
+      </main>
 
-        <!-- Dashboard -->
-        <div v-else class="flex min-h-screen">
-            <!-- Sidebar -->
-            <aside :class="['fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 flex flex-col pt-20 pb-4 z-50 transition-transform duration-300 lg:translate-x-0', isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0']">
-                <div class="px-6 mb-12">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h1 class="text-xl font-black text-slate-900 leading-none">Hub Fornecedores</h1>
-                            <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mt-2">Versão Offline</p>
-                        </div>
-                        <button @click="isMobileMenuOpen = false" class="p-2 lg:hidden text-slate-400"><i data-lucide="x" size="20"></i></button>
-                    </div>
-                </div>
-                
-                <nav class="flex-1 px-4 space-y-1">
-                    <a href="#" class="flex items-center px-4 py-3 text-slate-900 border-r-2 border-[#10B981] bg-white font-bold transition-all text-xs uppercase tracking-widest font-mono">
-                        <i data-lucide="package" class="w-5 h-5 mr-3 text-slate-900"></i>
-                        Fornecedores
-                    </a>
-                </nav>
-
-                <div class="px-4 mt-auto space-y-2 border-t border-slate-200 pt-4">
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button @click="exportBackup" title="Exportar Backup JSON" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-all flex items-center justify-center">
-                            <i data-lucide="download" size="16"></i>
-                        </button>
-                        <label class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition-all flex items-center justify-center cursor-pointer">
-                            <i data-lucide="upload" size="16"></i>
-                            <input type="file" @change="importBackup" class="hidden" accept=".json">
-                        </label>
-                    </div>
-                    <button @click="logout" class="flex items-center w-full px-4 py-3 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all text-xs uppercase tracking-widest font-semibold rounded-lg">
-                        <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
-                        Sair
-                    </button>
-                </div>
-            </aside>
-
-            <!-- Main Content -->
-            <main class="flex-1 lg:ml-64 transition-all">
-                <!-- Header -->
-                <header class="flex justify-between items-center w-full px-8 h-16 bg-white border-b border-slate-200 sticky top-0 z-30">
-                    <div class="flex items-center gap-3">
-                        <button @click="isMobileMenuOpen = true" class="p-2 -ml-2 text-slate-500 lg:hidden hover:bg-slate-50 rounded-lg">
-                            <i data-lucide="menu" size="20"></i>
-                        </button>
-                        <span class="text-lg font-bold tracking-tighter text-slate-900">Gestão Local de Fornecedores</span>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="flex gap-2 text-slate-400">
-                            <button @click="exportBackup" class="p-2 hover:bg-slate-50 rounded-full transition-colors" title="Exportar Backup"><i data-lucide="database" size="18"></i></button>
-                            <button class="p-2 hover:bg-slate-50 rounded-full transition-colors"><i data-lucide="bell" size="18"></i></button>
-                        </div>
-                        <div class="h-8 w-8 rounded-full overflow-hidden border border-slate-200 bg-[#10B981] flex items-center justify-center text-white font-bold text-xs">
-                            ADM
-                        </div>
-                    </div>
-                </header>
-
-                <div class="p-8 max-w-7xl mx-auto space-y-8">
-                    <!-- Action Center Form -->
-                    <section class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm relative overflow-hidden">
-                        <div class="mb-8">
-                            <h2 class="text-xl font-bold text-[#191C1E]">{{ editingId ? 'Editar Detalhes' : 'Centro de Ação' }}</h2>
-                            <p class="text-sm text-slate-500 mt-1">Registre novos parceiros ou refine as especificações técnicas.</p>
-                        </div>
-
-                        <form @submit.prevent="saveSupplier" class="grid grid-cols-12 gap-6">
-                            <div class="col-span-12 md:col-span-4 space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Empresa / Fornecedor</label>
-                                <input type="text" v-model="form.companyName" placeholder="Ex: Metalúrgica Gerdau" class="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition-all">
-                            </div>
-                            <div class="col-span-12 md:col-span-4 space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Contato Responsável</label>
-                                <input type="text" v-model="form.contactPerson" placeholder="Ex: João Silva" class="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition-all">
-                            </div>
-                            <div class="col-span-12 md:col-span-4 space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Telefone</label>
-                                <input type="tel" v-model="form.phone" placeholder="+55 (11) 90000-0000" class="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition-all">
-                            </div>
-                            <div class="col-span-12 md:col-span-4 space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">E-mail Corporativo</label>
-                                <input type="email" v-model="form.email" placeholder="fornecedor@empresa.com" class="w-full h-11 px-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition-all">
-                            </div>
-                            <div class="col-span-12 md:col-span-8 space-y-2">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Especificação de Material</label>
-                                <textarea v-model="form.materialType" rows="3" placeholder="Ex: Aço Carbono SAE 1020, Inox AISI 304, Bobina Galvanizada..." class="w-full p-4 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981] transition-all resize-none"></textarea>
-                            </div>
-
-                            <div class="col-span-12 flex justify-end gap-3 pt-4">
-                                <button type="button" @click="clearForm" class="px-6 py-2.5 border border-slate-200 text-slate-600 font-semibold rounded-lg hover:bg-slate-50 transition-colors text-sm">Limpar</button>
-                                <button type="submit" :class="['px-6 py-2.5 text-white font-bold rounded-lg transition-all text-sm flex items-center gap-2', editingId ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#10B981] hover:bg-[#059669] shadow-lg shadow-[#10B981]/20']">
-                                    <i :data-lucide="editingId ? 'edit-2' : 'check-circle'" size="16"></i>
-                                    {{ editingId ? 'Atualizar Dados' : 'Salvar Fornecedor' }}
-                                </button>
-                            </div>
-                        </form>
-                    </section>
-
-                    <!-- List Container -->
-                    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                        <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div class="flex items-center gap-4">
-                                <h3 class="text-lg font-bold text-slate-900">Lista Geral</h3>
-                                <span class="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
-                                    {{ filteredSuppliers.length }} Resultados
-                                </span>
-                            </div>
-                            <!-- Fast Selection Tools -->
-                            <div class="flex flex-wrap gap-2">
-                                <button v-if="selectedIds.length > 0" @click="deleteSelected" class="px-3 py-1.5 border border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg text-[11px] font-bold flex items-center gap-2 transition-all">
-                                    <i data-lucide="trash-2" size="14"></i>
-                                    Excluir Selecionados ({{ selectedIds.length }})
-                                </button>
-                                <button v-if="selectedIds.length > 0" @click="copySelectedEmails" class="px-3 py-1.5 border border-[#10B981] text-[#10B981] bg-emerald-50 hover:bg-emerald-100 rounded-lg text-[11px] font-bold flex items-center gap-2 transition-all">
-                                    <i data-lucide="copy" size="14"></i>
-                                    {{ copiedNote ? 'Copiados!' : 'Copiar E-mails' }}
-                                </button>
-                                <div class="relative min-w-[200px]">
-                                    <i data-lucide="search" size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                    <input type="text" v-model="quickFilter" placeholder="Pesquisa rápida..." class="w-full h-9 pl-9 pr-4 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-[#10B981]/20 outline-none">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-left border-collapse min-w-[900px]">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-200">
-                                        <th class="p-4 w-12 text-center">
-                                            <input type="checkbox" @change="toggleAllSelect" :checked="isAllSelected" class="rounded border-slate-300 text-[#10B981]">
-                                        </th>
-                                        <th class="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Empresa</th>
-                                        <th class="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Responsável</th>
-                                        <th class="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Contato</th>
-                                        <th class="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Material / Especificação</th>
-                                        <th class="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="s in filteredSuppliers" :key="s.id" class="hover:bg-slate-50 transition-colors group">
-                                        <td class="p-4 text-center">
-                                            <input type="checkbox" v-model="selectedIds" :value="s.id" class="rounded border-slate-300 text-[#10B981]">
-                                        </td>
-                                        <td class="p-4 font-mono text-xs font-bold text-slate-900">{{ s.companyName }}</td>
-                                        <td class="p-4 text-sm">{{ s.contactPerson }}</td>
-                                        <td class="p-4">
-                                            <div class="text-sm font-medium text-slate-700">{{ s.phone }}</div>
-                                            <div class="text-xs text-slate-400 font-mono">{{ s.email }}</div>
-                                        </td>
-                                        <td class="p-4">
-                                            <span class="inline-block bg-white text-slate-600 px-2.5 py-1 rounded border border-slate-200 text-xs font-mono shadow-sm">
-                                                {{ s.materialType }}
-                                            </span>
-                                        </td>
-                                        <td class="p-4 text-right">
-                                            <div class="flex justify-end gap-1">
-                                                <button @click="editSupplier(s)" class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all"><i data-lucide="edit-2" size="16"></i></button>
-                                                <button @click="deleteSingle(s)" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><i data-lucide="trash-2" size="16"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="filteredSuppliers.length === 0">
-                                        <td colspan="6" class="p-16 text-center text-slate-400 italic text-sm">
-                                            <i data-lucide="package-search" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
-                                            Nenhum registro encontrado para esta base de dados.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                </div>
-            </main>
-        </div>
+      {/* Modal de Exclusão */}
+      <AnimatePresence>
+        {isBulkDeleteModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-xl p-8 max-w-sm w-full shadow-2xl">
+              <h3 className="text-lg font-bold mb-2">Confirmar Exclusão</h3>
+              <p className="text-sm text-slate-500 mb-8">Deseja realmente excluir os {selectedIds.size} fornecedores selecionados? Esta ação é permanente.</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setIsBulkDeleteModalOpen(false)} className="px-4 py-2 text-sm font-bold text-slate-400">Cancelar</button>
+                <button onClick={confirmBulkDelete} className="px-6 py-2 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition-all">Excluir Agora</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
-
-    <script>
-        const { createApp, ref, computed, onMounted, nextTick } = Vue;
-
-        createApp({
-            setup() {
-                const ACCESS_CODE = "526385";
-                const isAuthenticated = ref(false);
-                const loginPass = ref("");
-                const loginError = ref("");
-                
-                const suppliers = ref([]);
-                const form = ref({ companyName: "", contactPerson: "", phone: "", email: "", materialType: "" });
-                const editingId = ref(null);
-                const isMobileMenuOpen = ref(false);
-                const quickFilter = ref("");
-                const selectedIds = ref([]);
-                const copiedNote = ref(false);
-
-                // Initialize icons
-                const refreshIcons = () => nextTick(() => lucide.createIcons());
-
-                // Persistence logic
-                const loadData = () => {
-                    const saved = localStorage.getItem('hub_fornecedores_db');
-                    if (saved) suppliers.value = JSON.parse(saved);
-                    
-                    const auth = localStorage.getItem('hub_auth_status');
-                    if (auth === 'true') {
-                        isAuthenticated.value = true;
-                        refreshIcons();
-                    }
-                };
-
-                const saveData = () => {
-                    localStorage.setItem('hub_fornecedores_db', JSON.stringify(suppliers.value));
-                };
-
-                // Search logic
-                const filteredSuppliers = computed(() => {
-                    if (!quickFilter.value) return suppliers.value;
-                    const search = quickFilter.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    return suppliers.value.filter(s => {
-                        const content = `${s.companyName} ${s.contactPerson} ${s.materialType} ${s.email}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                        return content.includes(search);
-                    });
-                });
-
-                // Selection logic
-                const isAllSelected = computed(() => {
-                    return filteredSuppliers.value.length > 0 && selectedIds.value.length === filteredSuppliers.value.length;
-                });
-
-                const toggleAllSelect = () => {
-                    if (isAllSelected.value) selectedIds.value = [];
-                    else selectedIds.value = filteredSuppliers.value.map(s => s.id);
-                };
-
-                // Actions
-                const handleLogin = () => {
-                    if (loginPass.value === ACCESS_CODE) {
-                        isAuthenticated.value = true;
-                        localStorage.setItem('hub_auth_status', 'true');
-                        refreshIcons();
-                        loginError.value = "";
-                    } else {
-                        loginError.value = "Senha incorreta. Tente novamente.";
-                    }
-                };
-
-                const logout = () => {
-                    isAuthenticated.value = false;
-                    localStorage.removeItem('hub_auth_status');
-                };
-
-                const saveSupplier = () => {
-                    if (!form.value.companyName) return alert("Nome da empresa é obrigatório");
-
-                    if (editingId.value) {
-                        const index = suppliers.value.findIndex(s => s.id === editingId.value);
-                        suppliers.value[index] = { ...form.value, id: editingId.value };
-                        editingId.value = null;
-                    } else {
-                        suppliers.value.unshift({
-                            ...form.value,
-                            id: Date.now().toString(36) + Math.random().toString(36).substr(2)
-                        });
-                    }
-                    
-                    saveData();
-                    clearForm();
-                    refreshIcons();
-                };
-
-                const editSupplier = (s) => {
-                    form.value = { ...s };
-                    editingId.value = s.id;
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                };
-
-                const deleteSingle = (s) => {
-                    if (confirm(`Excluir fornecedor ${s.companyName}?`)) {
-                        suppliers.value = suppliers.value.filter(item => item.id !== s.id);
-                        saveData();
-                    }
-                };
-
-                const deleteSelected = () => {
-                    if (confirm(`Excluir ${selectedIds.value.length} fornecedores selecionados?`)) {
-                        suppliers.value = suppliers.value.filter(s => !selectedIds.value.includes(s.id));
-                        selectedIds.value = [];
-                        saveData();
-                    }
-                };
-
-                const clearForm = () => {
-                    form.value = { companyName: "", contactPerson: "", phone: "", email: "", materialType: "" };
-                    editingId.value = null;
-                };
-
-                const copySelectedEmails = () => {
-                    const emails = suppliers.value
-                        .filter(s => selectedIds.value.includes(s.id))
-                        .map(s => s.email)
-                        .filter(e => !!e)
-                        .join(", ");
-                    
-                    if (emails) {
-                        navigator.clipboard.writeText(emails);
-                        copiedNote.value = true;
-                        setTimeout(() => copiedNote.value = false, 2000);
-                    }
-                };
-
-                // Backup System
-                const exportBackup = () => {
-                    const dataStr = JSON.stringify(suppliers.value, null, 2);
-                    const blob = new Blob([dataStr], { type: "application/json" });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = `backup_fornecedores_${new Date().toISOString().split('T')[0]}.json`;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                };
-
-                const importBackup = (event) => {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const imported = JSON.parse(e.target.result);
-                            if (Array.isArray(imported)) {
-                                if (confirm(`Deseja importar ${imported.length} fornecedores? Isso substituirá seus dados atuais.`)) {
-                                    suppliers.value = imported;
-                                    saveData();
-                                    alert("Importação concluída com sucesso!");
-                                }
-                            }
-                        } catch (err) {
-                            alert("Erro ao ler o arquivo de backup.");
-                        }
-                    };
-                    reader.readAsText(file);
-                };
-
-                onMounted(() => {
-                    loadData();
-                    refreshIcons();
-                });
-
-                return {
-                    isAuthenticated, loginPass, loginError, handleLogin, logout,
-                    suppliers, form, editingId, saveSupplier, editSupplier, 
-                    deleteSingle, deleteSelected, clearForm,
-                    isMobileMenuOpen, quickFilter, filteredSuppliers,
-                    selectedIds, toggleAllSelect, isAllSelected,
-                    copySelectedEmails, copiedNote,
-                    exportBackup, importBackup
-                };
-            }
-        }).mount('#app');
-    </script>
-</body>
-</html>
+  );
+}
