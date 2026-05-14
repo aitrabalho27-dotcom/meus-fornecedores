@@ -3,131 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Gestão Simplificada</title>
+    <title>Hub de Fornecedores - Gestão Profissional</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .sidebar-item:hover { background-color: rgba(255,255,255,0.1); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body class="bg-gray-100 text-gray-900 overflow-x-hidden">
+<body class="bg-[#F7F9FB] text-[#191C1E] min-h-screen">
 
-    <!-- LOGIN -->
+    <!-- TELA DE LOGIN -->
     <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 p-4">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm">
             <h2 class="text-2xl font-black text-center mb-6">HUB DE FORNECEDORES</h2>
-            <input type="password" id="pass" placeholder="Senha de Acesso" class="w-full p-4 border rounded-xl mb-4 text-center outline-none focus:ring-2 focus:ring-emerald-500">
-            <button onclick="doLogin()" class="w-full bg-emerald-600 text-white font-bold p-4 rounded-xl hover:bg-emerald-700 transition-all">ENTRAR NO SISTEMA</button>
+            <input type="password" id="passInput" placeholder="Senha de Acesso" class="w-full p-4 border rounded-xl mb-4 text-center outline-none focus:ring-2 focus:ring-emerald-500">
+            <button id="btnEntrar" class="w-full bg-emerald-600 text-white font-bold p-4 rounded-xl hover:bg-emerald-700 transition-all">ENTRAR NO SISTEMA</button>
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="appSection" class="hidden min-h-screen flex flex-col lg:flex-row">
+    <!-- SISTEMA COMPLETO (Inicia escondido) -->
+    <div id="appSection" class="hidden flex flex-col lg:flex-row min-h-screen">
         
-        <!-- SIDEBAR (Conforme Imagem 54a96f59) -->
+        <!-- SIDEBAR -->
         <aside class="w-full lg:w-72 bg-slate-900 text-gray-300 flex flex-col p-6 shadow-xl">
             <div class="mb-10">
-                <h1 class="text-white text-xl font-black">Hub de Fornecedores</h1>
-                <p class="text-[10px] uppercase tracking-tighter text-gray-500">Gestão Simplificada</p>
+                <h1 class="text-white text-xl font-black leading-none">Hub de Fornecedores</h1>
+                <p class="text-[10px] uppercase tracking-tighter text-gray-500 mt-2">Gestão de Materiais e Compras</p>
             </div>
-
             <nav class="flex-1 space-y-2">
                 <div class="p-3 bg-white/5 rounded-lg border-l-4 border-emerald-500 text-white flex items-center gap-3">
                     <span>📦</span> <span class="text-sm font-bold">FORNECEDORES</span>
                 </div>
-                
                 <div class="mt-10 mb-2 px-3 text-[10px] font-black text-gray-600 uppercase">Banco de Dados</div>
-                <button onclick="exportData()" class="sidebar-item w-full p-3 rounded-lg flex items-center gap-3 text-sm">📥 EXPORTAR BACKUP</button>
-                <label class="sidebar-item w-full p-3 rounded-lg flex items-center gap-3 text-sm cursor-pointer">
-                    📤 IMPORTAR DADOS
-                    <input type="file" id="importInp" accept=".json" class="hidden" onchange="importData(event)">
+                <button onclick="exportData()" class="w-full p-3 rounded-lg flex items-center gap-3 text-sm hover:bg-white/10 transition-all">📥 EXPORTAR BACKUP</button>
+                <label class="w-full p-3 rounded-lg flex items-center gap-3 text-sm cursor-pointer hover:bg-white/10 transition-all">
+                    📤 IMPORTAR E SOMAR
+                    <input type="file" accept=".json" class="hidden" onchange="importData(event)">
                 </label>
             </nav>
-
-            <button onclick="location.reload()" class="mt-auto p-4 flex items-center gap-3 text-xs font-bold text-gray-500 hover:text-white">
-                <span class="bg-gray-800 p-2 rounded-full text-white">N</span> SAIR
+            <button onclick="location.reload()" class="mt-auto p-4 flex items-center gap-3 text-xs font-bold text-gray-500 hover:text-white transition-all">
+                <span class="bg-gray-800 p-2 rounded-full text-white">N</span> SAIR DO SISTEMA
             </button>
         </aside>
 
-        <!-- CONTENT -->
+        <!-- CONTEÚDO PRINCIPAL -->
         <main class="flex-1 p-4 lg:p-8">
-            <header class="flex justify-between items-center mb-8 border-b pb-4">
-                <h2 class="font-bold text-gray-700">Hub de Fornecedores</h2>
-                <div class="flex gap-4 items-center">
-                    <span class="text-gray-400">🔔</span>
-                    <span class="text-gray-400">⚙️</span>
-                    <div class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-sm"></div>
-                </div>
-            </header>
-
-            <!-- CENTRO DE AÇÃO (Conforme Imagem 54a96f59) -->
-            <section class="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm mb-8 relative">
-                <div class="absolute right-8 top-8 opacity-10 text-4xl font-black italic uppercase">Hub</div>
+            <!-- CENTRO DE AÇÃO -->
+            <section class="bg-white p-8 rounded-3xl border border-gray-200 shadow-sm mb-8 relative overflow-hidden">
+                <div class="absolute right-[-20px] top-[-10px] opacity-5 text-6xl font-black italic uppercase">Hub</div>
                 <h3 class="text-2xl font-bold mb-1">Centro de Ação</h3>
                 <p class="text-gray-400 text-sm mb-8 font-semibold">Registre ou pesquise fornecedores e especificações técnicas.</p>
 
                 <form id="mainForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <input type="hidden" id="editId">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-gray-500 uppercase">Fornecedor (Nome da Empresa)</label>
-                        <input type="text" id="comp" placeholder="Ex: Metalúrgica Gerdau" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Fornecedor (Empresa)</label>
+                        <input type="text" id="comp" placeholder="Ex: Metalúrgica Gerdau" required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-gray-500 uppercase">Contato Responsável</label>
-                        <input type="text" id="cont" placeholder="Ex: João Silva" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Contato Responsável</label>
+                        <input type="text" id="cont" placeholder="Ex: João Silva" required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-gray-500 uppercase">Telefone</label>
-                        <input type="text" id="tel" placeholder="+55 (11) 00000-0000" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Telefone</label>
+                        <input type="text" id="tel" placeholder="+55 (47) 00000-0000" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-gray-500 uppercase">E-mail Corporativo</label>
-                        <input type="email" id="mail" placeholder="fornecedor@exemplo.com.br" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">E-mail Corporativo</label>
+                        <input type="email" id="mail" placeholder="fornecedor@exemplo.com.br" required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
                     </div>
-                    <div class="md:col-span-2 space-y-2">
-                        <label class="text-[10px] font-black text-gray-500 uppercase">Tipo de Material</label>
-                        <input type="text" id="mat" placeholder="Ex: Aço Carbono SAE 1020 com certificação ISO 9001..." required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20">
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="text-[10px] font-black text-gray-400 uppercase">Especificação do Material</label>
+                        <input type="text" id="mat" placeholder="Ex: Inox 304, Termopares JUMO, Cabos Cat6..." required class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20">
                     </div>
 
-                    <div class="lg:col-span-3 flex flex-wrap justify-end gap-3 mt-4">
+                    <div class="lg:col-span-3 flex flex-wrap justify-end gap-3 mt-4 border-t pt-6">
                         <button type="button" onclick="resetForm()" class="px-8 py-3 text-xs font-black uppercase text-gray-400 hover:text-gray-600">Limpar</button>
-                        <button type="button" onclick="search()" class="px-8 py-3 bg-slate-800 text-white rounded-xl text-xs font-black uppercase flex items-center gap-2 hover:bg-slate-700">🔍 PESQUISAR</button>
-                        <button type="submit" id="btnSalvar" class="px-8 py-3 bg-emerald-500 text-white rounded-xl text-xs font-black uppercase flex items-center gap-2 shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">✅ CADASTRAR FORNECEDOR</button>
+                        <button type="button" onclick="search()" class="px-8 py-3 bg-slate-800 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700">🔍 PESQUISAR</button>
+                        <button type="submit" id="btnSalvar" class="px-8 py-3 bg-emerald-500 text-white rounded-xl text-xs font-black uppercase shadow-lg shadow-emerald-500/30 hover:bg-emerald-600">✅ CADASTRAR</button>
                     </div>
                 </form>
             </section>
 
-            <!-- TABELA (Conforme Imagem f6bb3476) -->
+            <!-- TABELA DE RESULTADOS -->
             <section class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
                 <div class="p-6 border-b flex justify-between items-center bg-gray-50/50">
                     <div class="flex items-center gap-4">
                         <h3 class="font-bold text-gray-800">Lista de Fornecedores</h3>
                         <span id="countDisplay" class="text-[10px] font-black bg-gray-200 px-2 py-0.5 rounded text-gray-600">0 ENCONTRADOS</span>
                     </div>
-                    <button onclick="copyEmails()" class="flex items-center gap-2 text-xs font-bold text-emerald-600 border border-emerald-100 px-4 py-2 rounded-lg hover:bg-emerald-50">📋 Copiar E-mails</button>
+                    <button onclick="copyEmails()" class="text-xs font-bold text-emerald-600 hover:bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100 transition-all">📋 Copiar E-mails</button>
                 </div>
                 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-separate border-spacing-0">
+                    <table class="w-full text-left">
                         <thead>
-                            <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50">
-                                <th class="p-4 border-b">Fornecedor</th>
-                                <th class="p-4 border-b">Contato</th>
-                                <th class="p-4 border-b">E-mail</th>
-                                <th class="p-4 border-b">Telefone</th>
-                                <th class="p-4 border-b">Tipo de Material</th>
-                                <th class="p-4 border-b text-center">Ações</th>
+                            <tr class="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 border-b">
+                                <th class="p-4">Fornecedor</th>
+                                <th class="p-4">Contato</th>
+                                <th class="p-4">E-mail</th>
+                                <th class="p-4">Material</th>
+                                <th class="p-4 text-center">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="list" class="divide-y divide-gray-100 text-sm font-medium"></tbody>
+                        <tbody id="list" class="divide-y divide-gray-100 text-sm"></tbody>
                     </table>
-                </div>
-                <div class="p-6 bg-gray-50 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase">
-                    <span id="paginationText">Mostrando 0 de 0 fornecedores</span>
-                    <div class="flex gap-1">
-                        <button class="p-2 border rounded bg-white text-gray-800">1</button>
-                    </div>
                 </div>
             </section>
         </main>
@@ -135,35 +113,37 @@
 
     <script>
         const PASS = "526385";
-        let suppliers = JSON.parse(localStorage.getItem('db_hub_full') || '[]');
+        let suppliers = JSON.parse(localStorage.getItem('db_hub_final') || '[]');
 
-        function doLogin() {
-            if(document.getElementById('pass').value === PASS) {
-                document.getElementById('loginSection').classList.add('hidden');
+        // FUNÇÃO DE LOGIN CORRIGIDA
+        document.getElementById('btnEntrar').addEventListener('click', function() {
+            const digitado = document.getElementById('passInput').value;
+            if(digitado === PASS) {
+                document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('appSection').classList.remove('hidden');
                 render();
-            } else { alert("Senha Incorreta!"); }
-        }
+            } else {
+                alert("Senha Incorreta! Tente novamente.");
+            }
+        });
 
         function render(data = suppliers) {
             const tbody = document.getElementById('list');
             document.getElementById('countDisplay').innerText = ${data.length} ENCONTRADOS;
-            document.getElementById('paginationText').innerText = Mostrando ${data.length} de ${suppliers.length} fornecedores;
             
             tbody.innerHTML = data.map(s => `
                 <tr class="hover:bg-gray-50 transition-colors">
                     <td class="p-4 font-bold text-slate-700">${s.comp}</td>
                     <td class="p-4 text-gray-600">${s.cont}</td>
-                    <td class="p-4 text-blue-500 underline text-xs">${s.mail}</td>
-                    <td class="p-4 text-gray-500 font-mono text-xs">${s.tel || '-'}</td>
-                    <td class="p-4"><span class="bg-gray-100 text-[11px] px-2 py-1 rounded text-gray-600 border">${s.mat}</span></td>
+                    <td class="p-4 text-blue-500 text-xs italic">${s.mail}</td>
+                    <td class="p-4"><span class="bg-gray-100 text-[10px] px-2 py-1 rounded border text-gray-500 uppercase font-bold">${s.mat}</span></td>
                     <td class="p-4 flex gap-2 justify-center">
-                        <button onclick="edit('${s.id}')" class="text-amber-500 hover:bg-amber-50 px-3 py-1 rounded-lg border border-amber-100 transition-all">Editar</button>
-                        <button onclick="del('${s.id}')" class="text-rose-500 hover:bg-rose-50 px-3 py-1 rounded-lg border border-rose-100 transition-all">Excluir</button>
+                        <button onclick="edit('${s.id}')" class="text-amber-500 hover:bg-amber-50 px-3 py-1 rounded-lg border border-amber-100 font-bold text-xs">Editar</button>
+                        <button onclick="del('${s.id}')" class="text-rose-500 hover:bg-rose-50 px-3 py-1 rounded-lg border border-rose-100 font-bold text-xs">Excluir</button>
                     </td>
                 </tr>
             `).join('');
-            localStorage.setItem('db_hub_full', JSON.stringify(suppliers));
+            localStorage.setItem('db_hub_final', JSON.stringify(suppliers));
         }
 
         document.getElementById('mainForm').onsubmit = (e) => {
@@ -198,7 +178,7 @@
         }
 
         function del(id) {
-            if(confirm('Tem certeza que deseja excluir?')) {
+            if(confirm('Deseja excluir este registro permanentemente?')) {
                 suppliers = suppliers.filter(s => s.id !== id);
                 render();
             }
@@ -207,7 +187,7 @@
         function resetForm() {
             document.getElementById('mainForm').reset();
             document.getElementById('editId').value = '';
-            document.getElementById('btnSalvar').innerText = "✅ CADASTRAR FORNECEDOR";
+            document.getElementById('btnSalvar').innerText = "✅ CADASTRAR";
         }
 
         function search() {
@@ -219,26 +199,29 @@
         function copyEmails() {
             const emails = suppliers.map(s => s.mail).join('; ');
             navigator.clipboard.writeText(emails);
-            alert("Todos os e-mails copiados para a área de transferência!");
+            alert("E-mails copiados para a área de transferência!");
         }
 
         function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(suppliers));
-            const dl = document.createElement('a');
-            dl.setAttribute("href", dataStr);
-            dl.setAttribute("download", "backup_fornecedores.json");
-            dl.click();
+            const blob = new Blob([JSON.stringify(suppliers, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "backup_hub_fornecedores.json";
+            a.click();
         }
 
         function importData(ev) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const novos = JSON.parse(e.target.result);
-                let count = 0;
+                let somados = 0;
                 novos.forEach(n => {
-                    if(!suppliers.find(s => s.mail === n.mail)) { suppliers.push(n); count++; }
+                    if(!suppliers.find(s => s.mail.toLowerCase() === n.mail.toLowerCase())) {
+                        suppliers.push(n);
+                        somados++;
+                    }
                 });
-                render(); alert(count + " fornecedores somados à sua lista!");
+                render(); alert(somados + " novos registros foram somados!");
             };
             reader.readAsText(ev.target.files[0]);
         }
