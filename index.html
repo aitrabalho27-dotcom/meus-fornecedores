@@ -30,51 +30,56 @@
     <!-- SISTEMA -->
     <div id="appSection" class="min-h-screen flex flex-col lg:flex-row">
         
-        <aside class="w-full lg:w-64 bg-white border-r border-slate-200 p-6 flex flex-col">
+        <aside class="w-full lg:w-64 bg-white border-r border-slate-200 p-6 flex flex-col shadow-sm">
             <div class="mb-8">
-                <h1 class="text-xl font-black text-slate-900 leading-none">Hub de<br>Fornecedores</h1>
+                <h1 class="text-xl font-black text-slate-900 leading-none uppercase italic">Hub de<br>Fornecedores</h1>
                 <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Gestão Simplificada</p>
             </div>
             <nav class="flex-1 space-y-2">
-                <div class="py-2 border-l-2 border-emerald-500 pl-4 bg-emerald-50 mb-6"><span class="text-xs font-bold text-emerald-700">FORNECEDORES</span></div>
-                <button onclick="exportar()" class="w-full text-left p-2 text-xs font-semibold hover:bg-slate-50 rounded-lg">📥 EXPORTAR BACKUP</button>
-                <label class="block w-full text-left p-2 text-xs font-semibold hover:bg-slate-50 rounded-lg cursor-pointer">📤 IMPORTAR DADOS <input type="file" class="hidden" onchange="importar(event)"></label>
+                <div class="py-2 border-l-4 border-emerald-500 pl-4 bg-emerald-50 mb-6"><span class="text-xs font-bold text-emerald-700">FORNECEDORES</span></div>
+                <button onclick="exportar()" class="w-full text-left p-3 text-xs font-semibold hover:bg-slate-50 rounded-lg flex items-center gap-2">💾 EXPORTAR BACKUP</button>
+                <label class="block w-full text-left p-3 text-xs font-semibold hover:bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2">📂 IMPORTAR DADOS <input type="file" class="hidden" onchange="importar(event)"></label>
             </nav>
-            <button onclick="location.reload()" class="mt-auto bg-slate-50 p-3 rounded-xl text-xs font-bold text-slate-500">SAIR DO SISTEMA</button>
+            <button onclick="location.reload()" class="mt-auto bg-slate-100 p-3 rounded-xl text-[10px] font-black text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all uppercase">Sair do Sistema</button>
         </aside>
 
         <main class="flex-1 p-4 lg:p-8 overflow-y-auto">
             <div class="max-w-6xl mx-auto space-y-6">
                 
                 <!-- ÁREA DE CADASTRO -->
-                <div class="card p-6">
+                <div class="card p-6 border-t-4 border-t-emerald-500">
                     <input type="hidden" id="editId">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <input type="text" id="i_nome" placeholder="FORNECEDOR" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500">
-                        <input type="text" id="i_contato" placeholder="CONTATO" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none">
+                        <input type="text" id="i_nome" placeholder="FORNECEDOR" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
+                        <input type="text" id="i_contato" placeholder="CONTATO" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none uppercase">
                         <input type="text" id="i_email" placeholder="E-MAIL" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none">
                         <input type="text" id="i_tel" placeholder="TELEFONE" class="w-full p-3 bg-slate-50 border rounded-lg text-sm font-bold text-emerald-600 outline-none">
-                        <input type="text" id="i_mat" placeholder="TIPO DE MATERIAL" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none md:col-span-2">
+                        
+                        <!-- CAMPO COM SUGESTÃO CORRIGIDO -->
+                        <div class="md:col-span-2">
+                            <input list="materiaisSugeridos" type="text" id="i_mat" autocomplete="off" placeholder="TIPO DE MATERIAL (Digite para sugerir...)" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
+                            <datalist id="materiaisSugeridos"></datalist>
+                        </div>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Limpar</button>
-                        <button onclick="renderizar()" class="btn-secondary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest">🔍 Pesquisar</button>
-                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-md">✅ Cadastrar Fornecedor</button>
+                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors">Limpar</button>
+                        <button onclick="renderizar()" class="btn-secondary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-md">🔍 Pesquisar</button>
+                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg">✅ Cadastrar Fornecedor</button>
                     </div>
                 </div>
 
                 <!-- LISTA -->
                 <div class="card overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-4 bg-white sticky top-0 z-10">
+                    <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-4 bg-white sticky top-0 z-10 shadow-sm">
                         <div class="flex items-center gap-3">
-                            <h2 class="font-bold text-slate-800 text-sm">Lista de Fornecedores</h2>
-                            <span id="contador" class="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500 font-bold border">0 ENCONTRADOS</span>
+                            <h2 class="font-black text-slate-800 text-xs uppercase tracking-tight">Lista de Fornecedores</h2>
+                            <span id="contador" class="text-[10px] bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-bold border border-emerald-200">0 ENCONTRADOS</span>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="iniciarEdicao()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-orange-500 uppercase">🖊️ Editar</button>
-                            <button onclick="removerSelecionados()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-red-500 uppercase">🗑️ Excluir</button>
-                            <button onclick="copiarEmails()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-emerald-600 uppercase">📋 Copiar E-mails</button>
+                            <button onclick="iniciarEdicao()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-orange-500 uppercase hover:border-orange-500 transition-all">🖊️ Editar</button>
+                            <button onclick="removerSelecionados()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-red-500 uppercase hover:border-red-500 transition-all">🗑️ Excluir</button>
+                            <button onclick="copiarEmails()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-emerald-600 uppercase hover:border-emerald-500 transition-all">📋 Copiar E-mails</button>
                         </div>
                     </div>
 
@@ -82,11 +87,9 @@
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b">
                                 <tr>
-                                    <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)"></th>
+                                    <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
                                     <th class="p-4">Fornecedor</th>
-                                    <th class="p-4">Contato</th>
-                                    <th class="p-4">E-mail</th>
-                                    <th class="p-4">Telefone</th>
+                                    <th class="p-4 text-center">Contato / E-mail / Tel</th>
                                     <th class="p-4">Tipo de Material</th>
                                 </tr>
                             </thead>
@@ -109,10 +112,26 @@
             } else { alert("Senha incorreta"); }
         }
 
+        // FUNÇÃO DE SUGESTÃO REFORÇADA
+        function atualizarSugestoes() {
+            const datalist = document.getElementById('materiaisSugeridos');
+            // Filtra apenas valores únicos e não vazios
+            const materiaisUnicos = [...new Set(baseDados.map(f => f.material.trim().toUpperCase()).filter(m => m !== ""))];
+            
+            datalist.innerHTML = ""; // Limpa antes de reconstruir
+            materiaisUnicos.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m;
+                datalist.appendChild(option);
+            });
+        }
+
         function cadastrar() {
-            const nome = document.getElementById('i_nome').value;
+            const nome = document.getElementById('i_nome').value.trim();
+            const material = document.getElementById('i_mat').value.trim();
             const editId = document.getElementById('editId').value;
-            if(!nome) return alert("Nome obrigatório");
+
+            if(!nome) return alert("O nome do fornecedor é obrigatório!");
 
             const dados = {
                 id: editId ? Number(editId) : Date.now(),
@@ -120,13 +139,12 @@
                 contato: document.getElementById('i_contato').value.toUpperCase(),
                 email: document.getElementById('i_email').value.toLowerCase(),
                 tel: document.getElementById('i_tel').value,
-                material: document.getElementById('i_mat').value.toUpperCase()
+                material: material.toUpperCase()
             };
 
             if(editId) {
                 const index = baseDados.findIndex(f => f.id === dados.id);
-                baseDados[index] = dados;
-                document.getElementById('btnSalvar').innerText = "✅ CADASTRAR FORNECEDOR";
+                if(index !== -1) baseDados[index] = dados;
             } else {
                 baseDados.unshift(dados);
             }
@@ -136,9 +154,38 @@
             renderizar();
         }
 
+        function renderizar() {
+            const termo = document.getElementById('i_nome').value.toLowerCase();
+            const container = document.getElementById('tabelaBody');
+            const filtrados = baseDados.filter(f => f.nome.toLowerCase().includes(termo) || f.material.toLowerCase().includes(termo));
+            
+            document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
+
+            container.innerHTML = filtrados.map(f => `
+                <tr class="hover:bg-emerald-50 transition-colors border-b border-slate-50 group">
+                    <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
+                    <td class="p-4 font-black text-slate-800 uppercase tracking-tight">${f.nome}</td>
+                    <td class="p-4 text-slate-500 text-center">
+                        <div class="font-bold text-slate-700">${f.contato}</div>
+                        <div class="text-[10px]">${f.email}</div>
+                        <div class="text-emerald-600 font-bold">${f.tel}</div>
+                    </td>
+                    <td class="p-4 italic font-medium text-slate-600 uppercase">${f.material}</td>
+                </tr>
+            `).join('');
+
+            atualizarSugestoes(); // Garante que a lista de sugestões esteja pronta
+        }
+
+        function limparCampos() {
+            ['i_nome', 'i_contato', 'i_email', 'i_tel', 'i_mat', 'editId'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('btnSalvar').innerText = "✅ Cadastrar Fornecedor";
+            renderizar();
+        }
+
         function iniciarEdicao() {
             const chk = document.querySelector('.chk-item:checked');
-            if(!chk) return alert("Selecione um fornecedor para editar");
+            if(!chk) return alert("Selecione um item na lista abaixo antes de clicar em editar.");
             
             const item = baseDados.find(f => f.id == chk.value);
             if(item) {
@@ -148,33 +195,9 @@
                 document.getElementById('i_email').value = item.email;
                 document.getElementById('i_tel').value = item.tel;
                 document.getElementById('i_mat').value = item.material;
-                document.getElementById('btnSalvar').innerText = "💾 SALVAR ALTERAÇÕES";
+                document.getElementById('btnSalvar').innerText = "💾 Salvar Alterações";
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-        }
-
-        function limparCampos() {
-            ['i_nome', 'i_contato', 'i_email', 'i_tel', 'i_mat', 'editId'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('btnSalvar').innerText = "✅ CADASTRAR FORNECEDOR";
-            renderizar();
-        }
-
-        function renderizar() {
-            const termo = document.getElementById('i_nome').value.toLowerCase();
-            const container = document.getElementById('tabelaBody');
-            const filtrados = baseDados.filter(f => f.nome.toLowerCase().includes(termo) || f.material.toLowerCase().includes(termo));
-            document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
-
-            container.innerHTML = filtrados.map(f => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-4 text-center"><input type="checkbox" class="chk-item" value="${f.id}"></td>
-                    <td class="p-4 font-bold text-slate-800">${f.nome}</td>
-                    <td class="p-4">${f.contato}</td>
-                    <td class="p-4 text-blue-600 underline">${f.email}</td>
-                    <td class="p-4 font-bold text-emerald-700">${f.tel}</td>
-                    <td class="p-4 italic">${f.material}</td>
-                </tr>
-            `).join('');
         }
 
         function selecionarTodos(source) {
@@ -182,37 +205,42 @@
         }
 
         function copiarEmails() {
-            const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
-            const copy = sel.length ? sel.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
-            navigator.clipboard.writeText(copy);
-            alert("E-mails copiados!");
+            const selecionados = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
+            const texto = selecionados.length ? selecionados.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
+            navigator.clipboard.writeText(texto);
+            alert("Lista de e-mails pronta para colar no Outlook!");
         }
 
         function removerSelecionados() {
             const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => Number(c.value));
-            if(!sel.length || !confirm("Excluir selecionados?")) return;
+            if(!sel.length || !confirm(`Deseja excluir ${sel.length} item(ns)?`)) return;
             baseDados = baseDados.filter(f => !sel.includes(f.id));
             localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
             renderizar();
         }
 
         function exportar() {
-            const blob = new Blob([JSON.stringify(baseDados)], {type: 'application/json'});
+            const blob = new Blob([JSON.stringify(baseDados, null, 2)], {type: 'application/json'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'backup_fornecedores.json';
+            a.download = `HUB_BACKUP_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
             a.click();
         }
 
         function importar(e) {
-            const r = new FileReader();
-            r.onload = (ev) => {
-                baseDados = JSON.parse(ev.target.result);
-                localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
-                renderizar();
-                alert("Importado!");
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const dados = JSON.parse(ev.target.result);
+                    if(confirm("Isso irá mesclar os dados importados com os atuais. Continuar?")) {
+                        baseDados = [...dados, ...baseDados.filter(b => !dados.find(d => d.id === b.id))];
+                        localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
+                        renderizar();
+                        alert("Sincronização concluída!");
+                    }
+                } catch(err) { alert("Arquivo inválido!"); }
             };
-            r.readAsText(e.target.files[0]);
+            reader.readAsText(e.target.files[0]);
         }
     </script>
 </body>
