@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Dark Mode v2</title>
+    <title>Hub de Fornecedores - Dark Mode v3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
@@ -34,16 +34,17 @@
         }
         
         #appSection { display: none; }
-        .contact-icon { font-size: 10px; margin-right: 4px; opacity: 0.8; }
         
-        /* TABELA PADRONIZADA */
+        /* Ajuste para que os ícones fiquem visíveis no Dark Mode */
+        .contact-icon { font-size: 11px; margin-right: 6px; opacity: 1; vertical-align: middle; }
+        
+        /* TABELA PADRONIZADA (COM ÍCONES) */
         thead { background-color: #0f172a; }
         tr:hover { background-color: #334155 !important; }
         
-        /* Ajuste nas fontes da tabela para remover o 'itálico' e padronizar pesos */
-        .td-nome { font-weight: 700; color: #f1f5f9; text-transform: uppercase; }
-        .td-contato { font-weight: 500; color: #cbd5e1; }
-        .td-material { font-weight: 500; color: #94a3b8; text-transform: uppercase; font-style: normal; } /* Removido o itálico */
+        .td-nome { font-weight: 700; color: #f1f5f9; text-transform: uppercase; padding: 1rem; }
+        .td-contato { font-weight: 500; color: #cbd5e1; padding: 1rem; }
+        .td-material { font-weight: 500; color: #94a3b8; text-transform: uppercase; font-style: normal; padding: 1rem; }
     </style>
 </head>
 <body>
@@ -92,7 +93,7 @@
                 </div>
 
                 <div class="card p-4 bg-slate-900 border-emerald-900/30">
-                    <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="DIGITE PARA FILTRAR TUDO..." class="w-full p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none uppercase shadow-inner">
+                    <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL (Busque por Nome, Material, E-mail ou Telefone...)" class="w-full p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none uppercase shadow-inner placeholder:text-slate-600">
                 </div>
 
                 <div class="card overflow-hidden">
@@ -187,9 +188,9 @@
                     <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
                     <td class="p-4 td-nome">${f.nome}</td>
                     <td class="p-4 text-center td-contato">
-                        <div><span class="contact-icon">👤</span> ${f.contato}</div>
-                        <div class="text-blue-400 text-[10px]">${f.email}</div>
-                        <div class="text-emerald-400 font-bold">${f.tel}</div>
+                        <div class="flex items-center justify-center mb-1"><span class="contact-icon text-slate-400">👤</span> ${f.contato}</div>
+                        <div class="flex items-center justify-center text-blue-400 text-[11px] font-medium mb-1"><span class="contact-icon text-blue-500">✉️</span> ${f.email}</div>
+                        <div class="flex items-center justify-center text-emerald-400 font-bold"><span class="contact-icon text-emerald-500">📞</span> ${f.tel}</div>
                     </td>
                     <td class="p-4 td-material">${f.material}</td>
                 </tr>
