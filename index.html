@@ -3,54 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores</title>
+    <title>Hub de Fornecedores - Acesso Restrito</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { font-family: sans-serif; }</style>
 </head>
-<body class="bg-gray-50 p-4">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold mb-4">Hub de Fornecedores</h1>
-        <div class="flex gap-4 mb-6">
-            <button onclick="exportar()" class="bg-blue-500 text-white px-4 py-2 rounded">Exportar Backup</button>
-            <input type="file" id="importFile" class="hidden" onchange="importar(event)">
-            <button onclick="document.getElementById('importFile').click()" class="bg-amber-500 text-white px-4 py-2 rounded">Importar e Somar</button>
-        </div>
-        <form id="f" class="grid gap-2 mb-8">
-            <input id="n" placeholder="Empresa" class="border p-2 rounded" required>
-            <input id="e" type="email" placeholder="E-mail" class="border p-2 rounded" required>
-            <button type="submit" class="bg-emerald-600 text-white p-2 rounded font-bold">Salvar</button>
-        </form>
-        <table class="w-full text-left border-collapse">
-            <thead><tr class="bg-gray-100"><th class="p-2 border">Empresa</th><th class="p-2 border">E-mail</th></tr></thead>
-            <tbody id="lista"></tbody>
+<body class="bg-[#F7F9FB]">
+
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
+            <h1 class="text-xl font-bold mb-6">Hub de Fornecedores</h1>
+            <input type="password" id="passwordInput" placeholder="Digite a senha" class="w-full p-3 border rounded-xl mb-4 text-center">
+            <button onclick="checkLogin()" class="w-full bg-emerald-600 text-white p-3 rounded-xl font-bold">Entrar</button>
         </div>
     </div>
+
+    <!-- Painel (Escondido inicialmente) -->
+    <div id="appScreen" class="hidden min-h-screen flex flex-col lg:flex-row">
+        <aside class="w-full lg:w-64 bg-slate-900 text-white p-6">
+            <h1 class="text-xl font-black mb-8">Hub de Fornecedores</h1>
+            <button onclick="exportData()" class="block w-full text-left mb-4 text-sm font-bold text-slate-300">💾 Exportar Backup</button>
+            <label class="block w-full text-left mb-8 text-sm font-bold text-amber-400 cursor-pointer">
+                📥 Importar e Somar
+                <input type="file" accept=".json" class="hidden" onchange="importData(event)">
+            </label>
+            <button onclick="logout()" class="text-rose-500 font-bold text-xs mt-10">Sair do Sistema</button>
+        </aside>
+
+        <main class="flex-1 p-6">
+            <form id="supplierForm" class="bg-white p-6 rounded-2xl border shadow-sm mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="hidden" id="editingId">
+                <input type="text" id="companyName" placeholder="Empresa" required class="p-3 border rounded-xl text-sm">
+                <input type="text" id="contactPerson" placeholder="Contato" required class="p-3 border rounded-xl text-sm">
+                <input type="email" id="email" placeholder="E-mail" required class="p-3 border rounded-xl text-sm">
+                <textarea id="materialType" placeholder="Materiais" required class="md:col-span-3 p-3 border rounded-xl text-sm"></textarea>
+                <button type="submit" id="submitBtn" class="md:col-span-3 bg-emerald-600 text-white p-3 rounded-xl font-bold">Salvar Cadastro</button>
+            </form>
+
+            <section class="bg-white rounded-2xl border overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] uppercase text-slate-400">
+                        <tr><th class="p-4">Empresa</th><th class="p-4">Contato</th><th class="p-4 text-center">Ações</th></tr>
+                    </thead>
+                    <tbody id="supplierList" class="divide-y text-sm"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
     <script>
-        let dados = JSON.parse(localStorage.getItem('db_forn') || '[]');
-        const render = () => {
-            document.getElementById('lista').innerHTML = dados.map(s => <tr><td class="p-2 border">${s.n}</td><td class="p-2 border">${s.e}</td></tr>).join('');
-        };
-        document.getElementById('f').onsubmit = (e) => {
+        const SENHA_CORRETA = "526385";
+        let suppliers = JSON.parse(localStorage.getItem('hub_fornecedores_db') || '[]');
+
+        // Lógica de Login
+        function checkLogin() {
+            if(document.getElementById('passwordInput').value === SENHA_CORRETA) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('appScreen').classList.remove('hidden');
+                render();
+            } else { alert("Senha incorreta!"); }
+        }
+        function logout() { location.reload(); }
+
+        // Render e CRUD
+        function render() {
+            const list = document.getElementById('supplierList');
+            list.innerHTML = suppliers.map(s => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 font-bold">${s.companyName}</td>
+                    <td class="p-4">${s.contactPerson}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="edit('${s.id}')" class="text-amber-600 font-bold mr-2">Editar</button>
+                        <button onclick="del('${s.id}')" class="text-rose-600 font-bold">Excluir</button>
+                    </td>
+                </tr>
+            `).join('');
+            localStorage.setItem('hub_fornecedores_db', JSON.stringify(suppliers));
+        }
+
+        document.getElementById('supplierForm').onsubmit = (e) => {
             e.preventDefault();
-            dados.push({n: document.getElementById('n').value, e: document.getElementById('e').value});
-            localStorage.setItem('db_forn', JSON.stringify(dados));
-            render(); e.target.reset();
-        };
-        function exportar() {
-            const a = document.createElement('a');
-            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dados));
-            a.download = "fornecedores.json"; a.click();
-        }
-        function importar(ev) {
-            const r = new FileReader();
-            r.onload = (e) => {
-                const novos = JSON.parse(e.target.result);
-                novos.forEach(n => { if(!dados.find(d => d.e === n.e)) dados.push(n); });
-                localStorage.setItem('db_forn', JSON.stringify(dados)); render();
-                alert('Dados somados com sucesso!');
+            const id = document.getElementById('editingId').value;
+            const data = {
+                id: id || Date.now().toString(),
+                companyName: document.getElementById('companyName').value,
+                contactPerson: document.getElementById('contactPerson').value,
+                email: document.getElementById('email').value,
+                materialType: document.getElementById('materialType').value
             };
-            r.readAsText(ev.target.files[0]);
+            suppliers = id ? suppliers.map(s => s.id === id ? data : s) : [data, ...suppliers];
+            document.getElementById('supplierForm').reset();
+            document.getElementById('editingId').value = '';
+            render();
+        };
+
+        function edit(id) {
+            const s = suppliers.find(x => x.id === id);
+            document.getElementById('editingId').value = s.id;
+            document.getElementById('companyName').value = s.companyName;
+            document.getElementById('contactPerson').value = s.contactPerson;
+            document.getElementById('email').value = s.email;
+            document.getElementById('materialType').value = s.materialType;
         }
-        render();
+
+        function del(id) {
+            if(confirm('Excluir?')) { suppliers = suppliers.filter(s => s.id !== id); render(); }
+        }
+
+        function exportData() {
+            const a = document.createElement('a');
+            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(suppliers));
+            a.download = "backup_fornecedores.json"; a.click();
+        }
+
+        function importData(ev) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const novos = JSON.parse(e.target.result);
+                novos.forEach(n => { if(!suppliers.find(s => s.email === n.email)) suppliers.push(n); });
+                render(); alert("Dados somados!");
+            };
+            reader.readAsText(ev.target.files[0]);
+        }
     </script>
 </body>
 </html>
