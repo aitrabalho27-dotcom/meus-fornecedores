@@ -3,123 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Oficial</title>
+    <title>Hub de Fornecedores - Dark Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .btn-primary { background-color: #10b981; color: white; transition: all 0.2s; }
-        .btn-primary:hover { background-color: #059669; transform: translateY(-1px); }
-        .btn-secondary { background-color: #1e293b; color: white; }
-        .btn-outline { border: 1px solid #e2e8f0; color: #64748b; background: white; }
-        .btn-outline:hover { background: #f1f5f9; }
+        /* MODO ESCURO GLOBAL */
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
         
-        /* PADRONIZAÇÃO DAS CAIXAS DE TEXTO */
+        .btn-primary { background-color: #10b981; color: white; transition: all 0.2s; }
+        .btn-primary:hover { background-color: #34d399; transform: translateY(-1px); }
+        
+        .btn-secondary { background-color: #334155; color: white; }
+        .btn-outline { border: 1px solid #475569; color: #cbd5e1; background: #1e293b; }
+        .btn-outline:hover { background: #334155; color: #ffffff; }
+        
+        /* PADRONIZAÇÃO DAS CAIXAS DE TEXTO (DARK) */
         .input-padrao {
             width: 100%;
             padding: 0.75rem;
-            background-color: #f8fafc; /* bg-slate-50 */
-            border: 2px solid #e2e8f0; /* borda um pouco mais visível */
-            border-radius: 0.75rem; /* rounded-xl */
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 600; /* font-semibold para clareza */
+            background-color: #334155;
+            border: 2px solid #475569;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #f8fafc;
             outline: none;
             transition: all 0.2s;
             text-transform: uppercase;
         }
+        .input-padrao::placeholder { color: #94a3b8; text-transform: none; }
         .input-padrao:focus {
-            border-color: #10b981; /* verde ao clicar */
-            background-color: #ffffff;
-            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            background-color: #1e293b;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
         }
-        /* Ajuste específico para e-mail não ficar todo em maiúsculo se não quiser */
         #i_email { text-transform: lowercase; }
 
         #appSection { display: none; }
-        .contact-icon { font-size: 10px; margin-right: 4px; opacity: 0.6; }
+        .contact-icon { font-size: 10px; margin-right: 4px; opacity: 0.8; }
+        
+        /* Ajuste para a Tabela no Dark Mode */
+        thead { background-color: #0f172a; }
+        tr:hover { background-color: #334155 !important; }
+        .divide-slate-800 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
     </style>
 </head>
 <body>
 
-    <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
-            <h2 class="text-xl font-black mb-6 text-slate-800 uppercase tracking-tight font-mono">Acesso Restrito</h2>
-            <input type="password" id="passInput" placeholder="Digite a Senha" class="w-full p-4 border rounded-xl mb-4 text-center outline-none focus:ring-2 focus:ring-emerald-500">
-            <button onclick="validar()" class="w-full btn-secondary font-bold p-4 rounded-xl shadow-lg">ENTRAR</button>
+    <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
+        <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-xl font-black mb-6 text-slate-100 uppercase tracking-tight font-mono">Acesso Restrito</h2>
+            <input type="password" id="passInput" placeholder="Digite a Senha" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl mb-4 text-center text-white outline-none focus:ring-2 focus:ring-emerald-500">
+            <button onclick="validar()" class="w-full btn-primary font-bold p-4 rounded-xl shadow-lg uppercase">ENTRAR NO HUB</button>
         </div>
     </div>
 
     <div id="appSection" class="min-h-screen flex flex-col lg:flex-row">
         
-        <aside class="w-full lg:w-64 bg-white border-r border-slate-200 p-6 flex flex-col shadow-sm">
+        <aside class="w-full lg:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col shadow-sm">
             <div class="mb-8">
-                <h1 class="text-xl font-black text-slate-900 leading-none uppercase italic">Hub de<br>Fornecedores</h1>
-                <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Gestão Simplificada</p>
+                <h1 class="text-xl font-black text-emerald-500 leading-none uppercase italic">Hub de<br>Fornecedores</h1>
+                <p class="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-widest">Gestão Simplificada</p>
             </div>
             <nav class="flex-1 space-y-2">
-                <div class="py-2 border-l-4 border-emerald-500 pl-4 bg-emerald-50 mb-6"><span class="text-xs font-bold text-emerald-700">FORNECEDORES</span></div>
-                <button onclick="exportar()" class="w-full text-left p-3 text-xs font-semibold hover:bg-slate-50 rounded-lg flex items-center gap-2">💾 EXPORTAR BACKUP</button>
-                <label class="block w-full text-left p-3 text-xs font-semibold hover:bg-slate-50 rounded-lg cursor-pointer flex items-center gap-2">📂 IMPORTAR DADOS <input type="file" class="hidden" onchange="importar(event)"></label>
+                <div class="py-2 border-l-4 border-emerald-500 pl-4 bg-emerald-900/20 mb-6"><span class="text-xs font-bold text-emerald-400">FORNECEDORES</span></div>
+                <button onclick="exportar()" class="w-full text-left p-3 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2">💾 EXPORTAR BACKUP</button>
+                <label class="block w-full text-left p-3 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg cursor-pointer flex items-center gap-2">📂 IMPORTAR DADOS <input type="file" class="hidden" onchange="importar(event)"></label>
             </nav>
-            <button onclick="location.reload()" class="mt-auto bg-slate-100 p-3 rounded-xl text-[10px] font-black text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all uppercase">Sair do Sistema</button>
+            <button onclick="location.reload()" class="mt-auto bg-slate-800 p-3 rounded-xl text-[10px] font-black text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition-all uppercase border border-slate-700">Sair do Sistema</button>
         </aside>
 
         <main class="flex-1 p-4 lg:p-8 overflow-y-auto">
             <div class="max-w-6xl mx-auto space-y-6">
                 
-                <div class="card p-6 border-t-4 border-t-emerald-500">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Novo Cadastro / Edição</h3>
+                <div class="card p-6 border-t-4 border-t-emerald-600">
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">Novo Cadastro / Edição</h3>
                     <input type="hidden" id="editId">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <input type="text" id="i_nome" placeholder="FORNECEDOR" class="input-padrao">
                         <input type="text" id="i_contato" placeholder="CONTATO" class="input-padrao">
                         <input type="text" id="i_email" placeholder="E-MAIL" class="input-padrao">
-                        
-                        <input type="text" id="i_tel" maxlength="15" onkeyup="mascaraTelefone(this)" placeholder="TELEFONE" class="input-padrao text-emerald-600 font-bold">
-                        
+                        <input type="text" id="i_tel" maxlength="15" onkeyup="mascaraTelefone(this)" placeholder="TELEFONE" class="input-padrao text-emerald-400 font-bold">
                         <div class="md:col-span-2">
                             <input list="materiaisSugeridos" type="text" id="i_mat" autocomplete="off" placeholder="TIPO DE MATERIAL" class="input-padrao">
                             <datalist id="materiaisSugeridos"></datalist>
                         </div>
                     </div>
-
-                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 uppercase hover:text-slate-600 transition-colors">Limpar</button>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-500 uppercase hover:text-slate-300 transition-colors">Limpar</button>
                         <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg">✅ Salvar Fornecedor</button>
                     </div>
                 </div>
 
-                <div class="card p-4 bg-emerald-50 border-emerald-200">
+                <div class="card p-4 bg-slate-900 border-emerald-900/30">
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-500">🔍</span>
-                        <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL (Busque por Nome, Material, E-mail ou Telefone...)" class="w-full pl-10 p-4 bg-white border-2 border-emerald-200 rounded-xl text-sm font-bold outline-none focus:border-emerald-500 transition-all uppercase placeholder:text-emerald-300 shadow-sm">
+                        <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="DIGITE PARA FILTRAR TUDO..." class="w-full pl-10 p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none focus:border-emerald-500 transition-all uppercase placeholder:text-slate-600 shadow-inner">
                     </div>
                 </div>
 
                 <div class="card overflow-hidden">
-                    <div class="p-4 border-b flex justify-between bg-white sticky top-0 z-10 shadow-sm">
+                    <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
                         <div class="flex items-center gap-3">
-                            <h2 class="font-black text-slate-800 text-xs uppercase tracking-tight">Lista de Fornecedores</h2>
-                            <span id="contador" class="text-[10px] bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-bold border border-emerald-200">0 ENCONTRADOS</span>
+                            <h2 class="font-black text-slate-100 text-xs uppercase tracking-tight">Fornecedores</h2>
+                            <span id="contador" class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold border border-emerald-900/50">0 ENCONTRADOS</span>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="iniciarEdicao()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-orange-500 uppercase hover:border-orange-500 transition-all">🖊️ Editar</button>
-                            <button onclick="removerSelecionados()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-red-500 uppercase hover:border-red-500 transition-all">🗑️ Excluir</button>
-                            <button onclick="copiarEmails()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-emerald-600 uppercase hover:border-emerald-500 transition-all">📋 Copiar E-mails</button>
+                            <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400 hover:border-orange-400">🖊️ EDITAR</button>
+                            <button onclick="removerSelecionados()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-red-400 hover:border-red-400">🗑️ EXCLUIR</button>
+                            <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400 hover:border-emerald-500">📋 E-MAILS</button>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b">
+                            <thead class="text-[10px] font-black text-slate-500 uppercase tracking-tighter border-b border-slate-800">
                                 <tr>
                                     <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
                                     <th class="p-4">Fornecedor</th>
-                                    <th class="p-4 text-center">Informações de Contato</th>
-                                    <th class="p-4">Tipo de Material</th>
+                                    <th class="p-4 text-center">Contato / E-mail / Tel</th>
+                                    <th class="p-4">Material</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabelaBody" class="divide-y divide-slate-100 text-[11px]"></tbody>
+                            <tbody id="tabelaBody" class="divide-y divide-slate-800 text-[11px]"></tbody>
                         </table>
                     </div>
                 </div>
@@ -195,15 +201,15 @@
             document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
 
             container.innerHTML = filtrados.map(f => `
-                <tr class="hover:bg-emerald-50 transition-colors border-b border-slate-50">
+                <tr class="hover:bg-slate-800 transition-colors border-b border-slate-800">
                     <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
-                    <td class="p-4 font-black text-slate-800 uppercase tracking-tight">${f.nome}</td>
+                    <td class="p-4 font-black text-slate-100 uppercase tracking-tight">${f.nome}</td>
                     <td class="p-4 text-center">
-                        <div class="font-bold text-slate-700 flex items-center justify-center"><span class="contact-icon">👤</span> ${f.contato}</div>
-                        <div class="text-[11px] text-blue-700 font-medium my-0.5"><span class="contact-icon">✉️</span> ${f.email}</div>
-                        <div class="font-bold text-emerald-600"><span class="contact-icon">📞</span> ${f.tel}</div>
+                        <div class="font-bold text-slate-300 flex items-center justify-center"><span class="contact-icon">👤</span> ${f.contato}</div>
+                        <div class="text-[11px] text-blue-400 font-medium my-0.5"><span class="contact-icon">✉️</span> ${f.email}</div>
+                        <div class="font-bold text-emerald-400"><span class="contact-icon">📞</span> ${f.tel}</div>
                     </td>
-                    <td class="p-4 italic font-medium text-slate-600 uppercase">${f.material}</td>
+                    <td class="p-4 italic font-medium text-slate-400 uppercase">${f.material}</td>
                 </tr>
             `).join('');
             atualizarSugestoes();
@@ -256,7 +262,7 @@
             const blob = new Blob([JSON.stringify(baseDados, null, 2)], {type: 'application/json'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `HUB_BACKUP.json`;
+            a.download = `HUB_BACKUP_DARK.json`;
             a.click();
         }
 
