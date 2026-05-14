@@ -3,21 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Dark Mode</title>
+    <title>Hub de Fornecedores - Dark Mode v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* MODO ESCURO GLOBAL */
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
         .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
         
         .btn-primary { background-color: #10b981; color: white; transition: all 0.2s; }
         .btn-primary:hover { background-color: #34d399; transform: translateY(-1px); }
         
-        .btn-secondary { background-color: #334155; color: white; }
         .btn-outline { border: 1px solid #475569; color: #cbd5e1; background: #1e293b; }
         .btn-outline:hover { background: #334155; color: #ffffff; }
         
-        /* PADRONIZAÇÃO DAS CAIXAS DE TEXTO (DARK) */
         .input-padrao {
             width: 100%;
             padding: 0.75rem;
@@ -31,46 +28,45 @@
             transition: all 0.2s;
             text-transform: uppercase;
         }
-        .input-padrao::placeholder { color: #94a3b8; text-transform: none; }
         .input-padrao:focus {
             border-color: #10b981;
             background-color: #1e293b;
-            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
         }
-        #i_email { text-transform: lowercase; }
-
+        
         #appSection { display: none; }
         .contact-icon { font-size: 10px; margin-right: 4px; opacity: 0.8; }
         
-        /* Ajuste para a Tabela no Dark Mode */
+        /* TABELA PADRONIZADA */
         thead { background-color: #0f172a; }
         tr:hover { background-color: #334155 !important; }
-        .divide-slate-800 > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+        
+        /* Ajuste nas fontes da tabela para remover o 'itálico' e padronizar pesos */
+        .td-nome { font-weight: 700; color: #f1f5f9; text-transform: uppercase; }
+        .td-contato { font-weight: 500; color: #cbd5e1; }
+        .td-material { font-weight: 500; color: #94a3b8; text-transform: uppercase; font-style: normal; } /* Removido o itálico */
     </style>
 </head>
 <body>
 
     <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
         <div class="bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl w-full max-w-sm text-center">
-            <h2 class="text-xl font-black mb-6 text-slate-100 uppercase tracking-tight font-mono">Acesso Restrito</h2>
-            <input type="password" id="passInput" placeholder="Digite a Senha" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl mb-4 text-center text-white outline-none focus:ring-2 focus:ring-emerald-500">
-            <button onclick="validar()" class="w-full btn-primary font-bold p-4 rounded-xl shadow-lg uppercase">ENTRAR NO HUB</button>
+            <h2 class="text-xl font-black mb-6 text-slate-100 uppercase tracking-tight">Acesso Restrito</h2>
+            <input type="password" id="passInput" placeholder="Senha" class="w-full p-4 bg-slate-800 border border-slate-700 rounded-xl mb-4 text-center text-white outline-none">
+            <button onclick="validar()" class="w-full btn-primary font-bold p-4 rounded-xl shadow-lg uppercase">ENTRAR</button>
         </div>
     </div>
 
     <div id="appSection" class="min-h-screen flex flex-col lg:flex-row">
-        
-        <aside class="w-full lg:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col shadow-sm">
+        <aside class="w-full lg:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col">
             <div class="mb-8">
-                <h1 class="text-xl font-black text-emerald-500 leading-none uppercase italic">Hub de<br>Fornecedores</h1>
-                <p class="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-widest">Gestão Simplificada</p>
+                <h1 class="text-xl font-black text-emerald-500 uppercase italic">Hub de<br>Fornecedores</h1>
             </div>
             <nav class="flex-1 space-y-2">
                 <div class="py-2 border-l-4 border-emerald-500 pl-4 bg-emerald-900/20 mb-6"><span class="text-xs font-bold text-emerald-400">FORNECEDORES</span></div>
-                <button onclick="exportar()" class="w-full text-left p-3 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg flex items-center gap-2">💾 EXPORTAR BACKUP</button>
-                <label class="block w-full text-left p-3 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg cursor-pointer flex items-center gap-2">📂 IMPORTAR DADOS <input type="file" class="hidden" onchange="importar(event)"></label>
+                <button onclick="exportar()" class="w-full text-left p-3 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg">💾 EXPORTAR BACKUP</button>
+                <label class="block w-full text-left p-3 text-xs font-semibold text-slate-300 hover:bg-slate-800 rounded-lg cursor-pointer">📂 IMPORTAR DADOS <input type="file" class="hidden" onchange="importar(event)"></label>
             </nav>
-            <button onclick="location.reload()" class="mt-auto bg-slate-800 p-3 rounded-xl text-[10px] font-black text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition-all uppercase border border-slate-700">Sair do Sistema</button>
+            <button onclick="location.reload()" class="mt-auto bg-slate-800 p-3 rounded-xl text-[10px] font-black text-slate-400 hover:text-red-400 uppercase border border-slate-700">Sair</button>
         </aside>
 
         <main class="flex-1 p-4 lg:p-8 overflow-y-auto">
@@ -83,41 +79,38 @@
                         <input type="text" id="i_nome" placeholder="FORNECEDOR" class="input-padrao">
                         <input type="text" id="i_contato" placeholder="CONTATO" class="input-padrao">
                         <input type="text" id="i_email" placeholder="E-MAIL" class="input-padrao">
-                        <input type="text" id="i_tel" maxlength="15" onkeyup="mascaraTelefone(this)" placeholder="TELEFONE" class="input-padrao text-emerald-400 font-bold">
+                        <input type="text" id="i_tel" maxlength="15" onkeyup="mascaraTelefone(this)" placeholder="TELEFONE" class="input-padrao text-emerald-400">
                         <div class="md:col-span-2">
-                            <input list="materiaisSugeridos" type="text" id="i_mat" autocomplete="off" placeholder="TIPO DE MATERIAL" class="input-padrao">
+                            <input list="materiaisSugeridos" type="text" id="i_mat" placeholder="TIPO DE MATERIAL" class="input-padrao">
                             <datalist id="materiaisSugeridos"></datalist>
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
-                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-500 uppercase hover:text-slate-300 transition-colors">Limpar</button>
+                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-500 uppercase hover:text-slate-300">Limpar</button>
                         <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg">✅ Salvar Fornecedor</button>
                     </div>
                 </div>
 
                 <div class="card p-4 bg-slate-900 border-emerald-900/30">
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-500">🔍</span>
-                        <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="DIGITE PARA FILTRAR TUDO..." class="w-full pl-10 p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none focus:border-emerald-500 transition-all uppercase placeholder:text-slate-600 shadow-inner">
-                    </div>
+                    <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="DIGITE PARA FILTRAR TUDO..." class="w-full p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none uppercase shadow-inner">
                 </div>
 
                 <div class="card overflow-hidden">
-                    <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
+                    <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
                         <div class="flex items-center gap-3">
-                            <h2 class="font-black text-slate-100 text-xs uppercase tracking-tight">Fornecedores</h2>
+                            <h2 class="font-black text-slate-100 text-xs uppercase">Fornecedores</h2>
                             <span id="contador" class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold border border-emerald-900/50">0 ENCONTRADOS</span>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400 hover:border-orange-400">🖊️ EDITAR</button>
-                            <button onclick="removerSelecionados()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-red-400 hover:border-red-400">🗑️ EXCLUIR</button>
-                            <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400 hover:border-emerald-500">📋 E-MAILS</button>
+                            <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400">🖊️ EDITAR</button>
+                            <button onclick="removerSelecionados()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-red-400">🗑️ EXCLUIR</button>
+                            <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400">📋 E-MAILS</button>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="text-[10px] font-black text-slate-500 uppercase tracking-tighter border-b border-slate-800">
+                            <thead class="text-[10px] font-black text-slate-500 uppercase border-b border-slate-800">
                                 <tr>
                                     <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
                                     <th class="p-4">Fornecedor</th>
@@ -149,17 +142,6 @@
             v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
             v = v.replace(/(\d{5})(\d)/, "$1-$2");
             input.value = v;
-        }
-
-        function atualizarSugestoes() {
-            const datalist = document.getElementById('materiaisSugeridos');
-            const materiaisUnicos = [...new Set(baseDados.map(f => f.material.trim().toUpperCase()).filter(m => m !== ""))];
-            datalist.innerHTML = ""; 
-            materiaisUnicos.forEach(m => {
-                const option = document.createElement('option');
-                option.value = m;
-                datalist.appendChild(option);
-            });
         }
 
         function cadastrar() {
@@ -201,18 +183,17 @@
             document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
 
             container.innerHTML = filtrados.map(f => `
-                <tr class="hover:bg-slate-800 transition-colors border-b border-slate-800">
+                <tr class="hover:bg-slate-800 border-b border-slate-800">
                     <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
-                    <td class="p-4 font-black text-slate-100 uppercase tracking-tight">${f.nome}</td>
-                    <td class="p-4 text-center">
-                        <div class="font-bold text-slate-300 flex items-center justify-center"><span class="contact-icon">👤</span> ${f.contato}</div>
-                        <div class="text-[11px] text-blue-400 font-medium my-0.5"><span class="contact-icon">✉️</span> ${f.email}</div>
-                        <div class="font-bold text-emerald-400"><span class="contact-icon">📞</span> ${f.tel}</div>
+                    <td class="p-4 td-nome">${f.nome}</td>
+                    <td class="p-4 text-center td-contato">
+                        <div><span class="contact-icon">👤</span> ${f.contato}</div>
+                        <div class="text-blue-400 text-[10px]">${f.email}</div>
+                        <div class="text-emerald-400 font-bold">${f.tel}</div>
                     </td>
-                    <td class="p-4 italic font-medium text-slate-400 uppercase">${f.material}</td>
+                    <td class="p-4 td-material">${f.material}</td>
                 </tr>
             `).join('');
-            atualizarSugestoes();
         }
 
         function limparCampos() {
@@ -243,13 +224,6 @@
             document.querySelectorAll('.chk-item').forEach(c => c.checked = source.checked);
         }
 
-        function copiarEmails() {
-            const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
-            const texto = sel.length ? sel.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
-            navigator.clipboard.writeText(texto);
-            alert("E-mails copiados!");
-        }
-
         function removerSelecionados() {
             const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => Number(c.value));
             if(!sel.length || !confirm(`Excluir ${sel.length} item(ns)?`)) return;
@@ -274,8 +248,8 @@
                     baseDados = [...dados, ...baseDados.filter(b => !dados.find(d => d.id === b.id))];
                     localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
                     renderizar();
-                    alert("Importado!");
-                } catch(err) { alert("Erro no arquivo!"); }
+                    alert("Dados importados com sucesso!");
+                } catch(err) { alert("Erro ao ler o arquivo!"); }
             };
             reader.readAsText(e.target.files[0]);
         }
