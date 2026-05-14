@@ -1,402 +1,56 @@
-'use client';
-
-import React, { useState, useEffect, useMemo } from 'react';
-import Login from '@/components/Login';
-import { 
-  Search, 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  CheckCircle, 
-  X, 
-  Copy, 
-  ChevronLeft, 
-  ChevronRight, 
-  Settings, 
-  Bell, 
-  HelpCircle,
-  LogOut,
-  Package,
-  SearchCode,
-  Download,
-  Upload,
-  Users
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '@/lib/utils';
-
-// Tipagem dos Dados
-interface Supplier {
-  id: string;
-  companyName: string;
-  contactPerson: string;
-  phone: string;
-  email: string;
-  materialType: string;
-  createdAt: number;
-}
-
-// Auxiliar para normalizar buscas (remover acentos e padronizar)
-const normalize = (val: string) => 
-  val ? val.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
-
-// Dados Iniciais (Exemplos)
-const INITIAL_SUPPLIERS: Supplier[] = [
-  {
-    id: '1',
-    companyName: 'Usiminas S.A.',
-    contactPerson: 'Carlos Mendes',
-    phone: '(31) 3499-8000',
-    email: 'carlos.mendes@usiminas.com.br',
-    materialType: 'Aço Carbono SAE 1020',
-    createdAt: Date.now() - 1000000,
-  },
-  {
-    id: '2',
-    companyName: 'ArcelorMittal',
-    contactPerson: 'Ricardo Oliveira',
-    phone: '(27) 3348-1333',
-    email: 'comercial@arcelor.com',
-    materialType: 'Bobina Galvanizada',
-    createdAt: Date.now() - 4000000,
-  },
-];
-
-export default function SupplierDashboard() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  // Controle de Autenticação (Senha: 526385)
-  useEffect(() => {
-    const authStatus = localStorage.getItem('hub-auth');
-    setIsAuthenticated(authStatus === 'true');
-  }, []);
-
-  const handleLogin = () => {
-    localStorage.setItem('hub-auth', 'true');
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('hub-auth');
-    setIsAuthenticated(false);
-  };
-
-  // Carregamento e Persistência Local
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    setLoading(true);
-    const saved = localStorage.getItem('hub_fornecedores_db');
-    if (saved) {
-      try {
-        setSuppliers(JSON.parse(saved));
-      } catch (e) {
-        setSuppliers([]);
-      }
-    } else {
-      setSuppliers(INITIAL_SUPPLIERS);
-      localStorage.setItem('hub_fornecedores_db', JSON.stringify(INITIAL_SUPPLIERS));
-    }
-    setLoading(false);
-  }, [isAuthenticated]);
-
-  const syncToStorage = (newSuppliers: Supplier[]) => {
-    setSuppliers(newSuppliers);
-    localStorage.setItem('hub_fornecedores_db', JSON.stringify(newSuppliers));
-  };
-
-  const [searchForm, setSearchForm] = useState({
-    companyName: '',
-    contactPerson: '',
-    phone: '',
-    email: '',
-    materialType: '',
-  });
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [copiedEmails, setCopiedEmails] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-  // Estado da Paginação
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
-
-  // Filtro de Busca Inteligente
-  const filteredSuppliers = useMemo(() => {
-    return suppliers.filter(s => {
-      const matches = (fieldVal: string, searchVal: string) => {
-        const normalizedField = normalize(fieldVal);
-        const normalizedSearch = normalize(searchVal);
-        if (!normalizedSearch) return true;
-        const words = normalizedSearch.split(' ').filter(Boolean);
-        return words.every(word => normalizedField.includes(word));
-      };
-      return (
-        matches(s.companyName, searchForm.companyName) &&
-        matches(s.contactPerson, searchForm.contactPerson) &&
-        matches(s.phone, searchForm.phone) &&
-        matches(s.email, searchForm.email) &&
-        matches(s.materialType, searchForm.materialType)
-      );
-    });
-  }, [suppliers, searchForm]);
-
-  // Lista Paginada
-  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
-  const paginatedSuppliers = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredSuppliers.slice(start, start + itemsPerPage);
-  }, [filteredSuppliers, currentPage]);
-
-  useEffect(() => { setCurrentPage(1); }, [searchForm]);
-
-  // Handlers Principais
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setSearchForm(prev => ({ ...prev, [name]: value }));
-    if (name === 'materialType') setShowSuggestions(true);
-  };
-
-  const clearForm = () => {
-    setSearchForm({ companyName: '', contactPerson: '', phone: '', email: '', materialType: '' });
-    setEditingId(null);
-    setShowSuggestions(false);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    let nextSuppliers = [...suppliers];
-    if (editingId) {
-      nextSuppliers = nextSuppliers.map(s => s.id === editingId ? { ...s, ...searchForm } : s);
-      setEditingId(null);
-    } else {
-      const newSupplier = { ...searchForm, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now() };
-      nextSuppliers = [newSupplier, ...nextSuppliers];
-    }
-    syncToStorage(nextSuppliers);
-    clearForm();
-  };
-
-  // Exportar Backup
-  const exportData = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(suppliers));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `hub_fornecedores_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  };
-
-  // Importar com Mesclagem (Evita duplicados)
-  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const json = JSON.parse(event.target?.result as string);
-        if (Array.isArray(json)) {
-          const existingEmails = new Set(suppliers.map(s => normalize(s.email)));
-          const existingNames = new Set(suppliers.map(s => normalize(s.companyName)));
-          const newEntries: Supplier[] = [];
-          let duplicates = 0;
-          json.forEach((item: any) => {
-            if (!item.companyName || !item.email) return;
-            const normEmail = normalize(item.email);
-            const normName = normalize(item.companyName);
-            if (!existingEmails.has(normEmail) && !existingNames.has(normName)) {
-              newEntries.push({ ...item, id: item.id || Math.random().toString(36).substr(2, 9), createdAt: item.createdAt || Date.now() });
-              existingEmails.add(normEmail);
-              existingNames.add(normName);
-            } else { duplicates++; }
-          });
-          if (newEntries.length > 0) {
-            syncToStorage([...newEntries, ...suppliers]);
-            alert(`${newEntries.length} novos fornecedores importados. ${duplicates > 0 ? `(${duplicates} duplicados ignorados)` : ''}`);
-          } else { alert(`Nenhum novo fornecedor foi adicionado. Os dados já existem.`); }
-        }
-      } catch (err) { alert("Erro ao ler o arquivo JSON."); }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
-
-  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
-
-  const confirmBulkDelete = () => {
-    const nextSuppliers = suppliers.filter(s => !selectedIds.has(s.id));
-    syncToStorage(nextSuppliers);
-    setSelectedIds(new Set());
-    setIsBulkDeleteModalOpen(false);
-  };
-
-  const toggleSelect = (id: string) => {
-    const next = new Set(selectedIds);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    setSelectedIds(next);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === filteredSuppliers.length) { setSelectedIds(new Set()); } 
-    else { setSelectedIds(new Set(filteredSuppliers.map(s => s.id))); }
-  };
-
-  if (isAuthenticated === null) return null;
-  if (!isAuthenticated) return <Login onLogin={handleLogin} />;
-
-  return (
-    <div className="flex min-h-screen bg-[#F7F9FB] text-[#191C1E] antialiased">
-      {/* Sidebar */}
-      <aside className={cn(
-        "fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 flex flex-col pt-20 pb-4 z-50 transition-transform lg:translate-x-0",
-        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="px-6 mb-12">
-          <h1 className="text-xl font-black text-slate-900 leading-none">Hub de Fornecedores</h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mt-2">Gestão Simplificada</p>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub de Fornecedores</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-4">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Hub de Fornecedores</h1>
+        <div class="flex gap-4 mb-6">
+            <button onclick="exportar()" class="bg-blue-500 text-white px-4 py-2 rounded">Exportar Backup</button>
+            <input type="file" id="importFile" class="hidden" onchange="importar(event)">
+            <button onclick="document.getElementById('importFile').click()" class="bg-amber-500 text-white px-4 py-2 rounded">Importar e Somar</button>
         </div>
-        
-        <nav className="flex-1 px-4 space-y-1">
-          <button className="w-full flex items-center px-4 py-3 text-slate-900 border-r-2 border-[#10B981] bg-white font-bold text-xs uppercase tracking-widest">
-            <Package className="w-5 h-5 mr-3" />
-            Fornecedores
-          </button>
-        </nav>
-
-        <div className="px-4 mb-4">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 mb-3">Banco de Dados</p>
-          <div className="space-y-1">
-            <button onClick={exportData} className="w-full flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-emerald-50 rounded-lg text-[11px] font-bold uppercase transition-all">
-              <Download size={14} /> Exportar Backup
-            </button>
-            <label className="w-full flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-amber-50 rounded-lg text-[11px] font-bold uppercase cursor-pointer">
-              <Upload size={14} /> Importar Dados
-              <input type="file" accept=".json" onChange={importData} className="hidden" />
-            </label>
-          </div>
+        <form id="f" class="grid gap-2 mb-8">
+            <input id="n" placeholder="Empresa" class="border p-2 rounded" required>
+            <input id="e" type="email" placeholder="E-mail" class="border p-2 rounded" required>
+            <button type="submit" class="bg-emerald-600 text-white p-2 rounded font-bold">Salvar</button>
+        </form>
+        <table class="w-full text-left border-collapse">
+            <thead><tr class="bg-gray-100"><th class="p-2 border">Empresa</th><th class="p-2 border">E-mail</th></tr></thead>
+            <tbody id="lista"></tbody>
         </div>
-
-        <div className="px-4 mt-auto border-t border-slate-200 pt-4">
-          <button onClick={handleLogout} className="flex items-center w-full px-4 py-3 text-slate-500 hover:text-rose-600 text-xs uppercase font-bold">
-            <LogOut className="w-5 h-5 mr-3" /> Sair
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64">
-        <header className="flex justify-between items-center w-full px-8 h-16 bg-white border-b border-slate-200 sticky top-0 z-50">
-          <span className="font-bold text-slate-900">Painel Geral</span>
-          <div className="flex items-center gap-4">
-            <div className="h-8 w-8 rounded-full bg-slate-200" />
-          </div>
-        </header>
-
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
-          {/* Cadastro & Busca */}
-          <section className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-            <h2 className="text-xl font-bold mb-6">Centro de Operações</h2>
-            <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-6">
-              <div className="col-span-12 md:col-span-4 space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-500">Fornecedor</label>
-                <input type="text" name="companyName" value={searchForm.companyName} onChange={handleInputChange} className="w-full h-11 px-4 border rounded-lg text-sm" placeholder="Nome da empresa" />
-              </div>
-              <div className="col-span-12 md:col-span-4 space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-500">Contato</label>
-                <input type="text" name="contactPerson" value={searchForm.contactPerson} onChange={handleInputChange} className="w-full h-11 px-4 border rounded-lg text-sm" placeholder="Nome do contato" />
-              </div>
-              <div className="col-span-12 md:col-span-4 space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-500">E-mail</label>
-                <input type="email" name="email" value={searchForm.email} onChange={handleInputChange} className="w-full h-11 px-4 border rounded-lg text-sm" placeholder="email@exemplo.com" />
-              </div>
-              <div className="col-span-12 space-y-2">
-                <label className="text-[10px] font-bold uppercase text-slate-500">Tipo de Material / Especificação</label>
-                <textarea name="materialType" value={searchForm.materialType} onChange={handleInputChange} rows={2} className="w-full p-4 border rounded-lg text-sm" placeholder="Descreva os materiais..." />
-              </div>
-              <div className="col-span-12 flex justify-end gap-3 pt-4">
-                <button type="button" onClick={clearForm} className="px-8 py-3 bg-slate-100 text-slate-500 border font-bold rounded-xl hover:bg-slate-200 text-xs uppercase tracking-widest transition-all">Limpar</button>
-                <button type="submit" className={cn(
-                  "px-8 py-3 text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg",
-                  editingId ? "bg-amber-500 hover:bg-amber-600" : "bg-[#10B981] hover:bg-[#059669]"
-                )}>
-                  {editingId ? 'Salvar Edição' : 'Cadastrar novo'}
-                </button>
-              </div>
-            </form>
-          </section>
-
-          {/* Listagem */}
-          <section className="bg-white border rounded-xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b flex justify-between items-center bg-slate-50/50">
-              <h3 className="font-bold">Listagem de Fornecedores</h3>
-              <div className="flex gap-2">
-                <button onClick={() => setIsBulkDeleteModalOpen(true)} className="px-4 py-2 border border-rose-200 text-rose-600 bg-white rounded-lg text-xs font-bold hover:bg-rose-50 transition-all flex items-center gap-2">
-                  <Trash2 size={14} /> Excluir Selecionados ({selectedIds.size})
-                </button>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 text-[10px] font-bold uppercase text-slate-400">
-                  <tr>
-                    <th className="p-4 w-10"><input type="checkbox" checked={selectedIds.size === paginatedSuppliers.length && paginatedSuppliers.length > 0} onChange={toggleSelectAll} /></th>
-                    <th className="p-4">Empresa</th>
-                    <th className="p-4">Contato</th>
-                    <th className="p-4">E-mail</th>
-                    <th className="p-4">Material</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y text-sm">
-                  {paginatedSuppliers.map(s => (
-                    <tr key={s.id} className="hover:bg-slate-50/50">
-                      <td className="p-4"><input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleSelect(s.id)} /></td>
-                      <td className="p-4 font-bold">{s.companyName}</td>
-                      <td className="p-4">{s.contactPerson}</td>
-                      <td className="p-4 text-slate-500">{s.email}</td>
-                      <td className="p-4"><span className="px-2 py-1 bg-slate-100 rounded text-[11px] border">{s.materialType}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Paginação */}
-            <div className="p-4 border-t flex justify-between items-center text-xs text-slate-500">
-              <p>Mostrando {paginatedSuppliers.length} de {filteredSuppliers.length} resultados</p>
-              <div className="flex gap-1">
-                <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="w-8 h-8 border rounded flex items-center justify-center hover:bg-slate-50 disabled:opacity-30"><ChevronLeft size={14} /></button>
-                <div className="flex gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button key={i} onClick={() => setCurrentPage(i + 1)} className={cn("w-8 h-8 border rounded font-bold", currentPage === i + 1 ? "bg-emerald-50 border-[#10B981] text-[#10B981]" : "hover:bg-slate-50")}>{i + 1}</button>
-                  ))}
-                </div>
-                <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="w-8 h-8 border rounded flex items-center justify-center hover:bg-slate-50 disabled:opacity-30"><ChevronRight size={14} /></button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
-
-      {/* Modal de Exclusão */}
-      <AnimatePresence>
-        {isBulkDeleteModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-xl p-8 max-w-sm w-full shadow-2xl">
-              <h3 className="text-lg font-bold mb-2">Confirmar Exclusão</h3>
-              <p className="text-sm text-slate-500 mb-8">Deseja realmente excluir os {selectedIds.size} fornecedores selecionados? Esta ação é permanente.</p>
-              <div className="flex justify-end gap-3">
-                <button onClick={() => setIsBulkDeleteModalOpen(false)} className="px-4 py-2 text-sm font-bold text-slate-400">Cancelar</button>
-                <button onClick={confirmBulkDelete} className="px-6 py-2 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition-all">Excluir Agora</button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
-  );
-}
+    <script>
+        let dados = JSON.parse(localStorage.getItem('db_forn') || '[]');
+        const render = () => {
+            document.getElementById('lista').innerHTML = dados.map(s => <tr><td class="p-2 border">${s.n}</td><td class="p-2 border">${s.e}</td></tr>).join('');
+        };
+        document.getElementById('f').onsubmit = (e) => {
+            e.preventDefault();
+            dados.push({n: document.getElementById('n').value, e: document.getElementById('e').value});
+            localStorage.setItem('db_forn', JSON.stringify(dados));
+            render(); e.target.reset();
+        };
+        function exportar() {
+            const a = document.createElement('a');
+            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dados));
+            a.download = "fornecedores.json"; a.click();
+        }
+        function importar(ev) {
+            const r = new FileReader();
+            r.onload = (e) => {
+                const novos = JSON.parse(e.target.result);
+                novos.forEach(n => { if(!dados.find(d => d.e === n.e)) dados.push(n); });
+                localStorage.setItem('db_forn', JSON.stringify(dados)); render();
+                alert('Dados somados com sucesso!');
+            };
+            r.readAsText(ev.target.files[0]);
+        }
+        render();
+    </script>
+</body>
+</html>
