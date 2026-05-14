@@ -18,7 +18,6 @@
 </head>
 <body>
 
-    <!-- LOGIN -->
     <div id="loginSection" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 p-4">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
             <h2 class="text-xl font-black mb-6 text-slate-800 uppercase tracking-tight font-mono">Acesso Restrito</h2>
@@ -27,9 +26,7 @@
         </div>
     </div>
 
-    <!-- SISTEMA -->
     <div id="appSection" class="min-h-screen flex flex-col lg:flex-row">
-        
         <aside class="w-full lg:w-64 bg-white border-r border-slate-200 p-6 flex flex-col shadow-sm">
             <div class="mb-8">
                 <h1 class="text-xl font-black text-slate-900 leading-none uppercase italic">Hub de<br>Fornecedores</h1>
@@ -45,47 +42,37 @@
 
         <main class="flex-1 p-4 lg:p-8 overflow-y-auto">
             <div class="max-w-6xl mx-auto space-y-6">
-                
-                <!-- ÁREA DE CADASTRO -->
                 <div class="card p-6 border-t-4 border-t-emerald-500">
                     <input type="hidden" id="editId">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <input type="text" id="i_nome" placeholder="FORNECEDOR" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
+                        <input type="text" id="i_nome" onkeyup="renderizar()" placeholder="PESQUISAR (EMPRESA, MATERIAL, EMAIL...)" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
                         <input type="text" id="i_contato" placeholder="CONTATO" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none uppercase">
                         <input type="text" id="i_email" placeholder="E-MAIL" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none">
                         <input type="text" id="i_tel" placeholder="TELEFONE" class="w-full p-3 bg-slate-50 border rounded-lg text-sm font-bold text-emerald-600 outline-none">
-                        
-                        <!-- CAMPO COM SUGESTÃO CORRIGIDO -->
                         <div class="md:col-span-2">
-                            <input list="materiaisSugeridos" type="text" id="i_mat" autocomplete="off" placeholder="TIPO DE MATERIAL (Digite para sugerir...)" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
+                            <input list="materiaisSugeridos" type="text" id="i_mat" autocomplete="off" placeholder="TIPO DE MATERIAL" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
                             <datalist id="materiaisSugeridos"></datalist>
                         </div>
                     </div>
-
                     <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors">Limpar</button>
-                        <button onclick="renderizar()" class="btn-secondary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-md">🔍 Pesquisar</button>
-                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg">✅ Cadastrar Fornecedor</button>
+                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 uppercase">Limpar</button>
+                        <button onclick="renderizar()" class="btn-secondary px-8 py-3 rounded-xl font-bold text-xs uppercase shadow-md">🔍 Pesquisar</button>
+                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase shadow-lg">✅ Cadastrar</button>
                     </div>
                 </div>
 
-                <!-- LISTA -->
                 <div class="card overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-4 bg-white sticky top-0 z-10 shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <h2 class="font-black text-slate-800 text-xs uppercase tracking-tight">Lista de Fornecedores</h2>
-                            <span id="contador" class="text-[10px] bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-bold border border-emerald-200">0 ENCONTRADOS</span>
-                        </div>
+                    <div class="p-4 border-b flex justify-between bg-white sticky top-0 z-10 shadow-sm">
+                        <span id="contador" class="text-[10px] bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-bold border border-emerald-200 uppercase">0 ENCONTRADOS</span>
                         <div class="flex gap-2">
-                            <button onclick="iniciarEdicao()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-orange-500 uppercase hover:border-orange-500 transition-all">🖊️ Editar</button>
-                            <button onclick="removerSelecionados()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-red-500 uppercase hover:border-red-500 transition-all">🗑️ Excluir</button>
-                            <button onclick="copiarEmails()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-emerald-600 uppercase hover:border-emerald-500 transition-all">📋 Copiar E-mails</button>
+                            <button onclick="iniciarEdicao()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-orange-500 uppercase">🖊️ Editar</button>
+                            <button onclick="removerSelecionados()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-red-500 uppercase">🗑️ Excluir</button>
+                            <button onclick="copiarEmails()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-emerald-600 uppercase">📋 Copiar E-mails</button>
                         </div>
                     </div>
-
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b">
+                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase border-b">
                                 <tr>
                                     <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
                                     <th class="p-4">Fornecedor</th>
@@ -112,13 +99,10 @@
             } else { alert("Senha incorreta"); }
         }
 
-        // FUNÇÃO DE SUGESTÃO REFORÇADA
         function atualizarSugestoes() {
             const datalist = document.getElementById('materiaisSugeridos');
-            // Filtra apenas valores únicos e não vazios
             const materiaisUnicos = [...new Set(baseDados.map(f => f.material.trim().toUpperCase()).filter(m => m !== ""))];
-            
-            datalist.innerHTML = ""; // Limpa antes de reconstruir
+            datalist.innerHTML = ""; 
             materiaisUnicos.forEach(m => {
                 const option = document.createElement('option');
                 option.value = m;
@@ -130,9 +114,7 @@
             const nome = document.getElementById('i_nome').value.trim();
             const material = document.getElementById('i_mat').value.trim();
             const editId = document.getElementById('editId').value;
-
-            if(!nome) return alert("O nome do fornecedor é obrigatório!");
-
+            if(!nome) return alert("Nome é obrigatório!");
             const dados = {
                 id: editId ? Number(editId) : Date.now(),
                 nome: nome.toUpperCase(),
@@ -141,40 +123,42 @@
                 tel: document.getElementById('i_tel').value,
                 material: material.toUpperCase()
             };
-
             if(editId) {
                 const index = baseDados.findIndex(f => f.id === dados.id);
                 if(index !== -1) baseDados[index] = dados;
-            } else {
-                baseDados.unshift(dados);
-            }
-
+            } else { baseDados.unshift(dados); }
             localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
             limparCampos();
             renderizar();
         }
 
         function renderizar() {
-            const termo = document.getElementById('i_nome').value.toLowerCase();
+            const t = document.getElementById('i_nome').value.toLowerCase();
             const container = document.getElementById('tabelaBody');
-            const filtrados = baseDados.filter(f => f.nome.toLowerCase().includes(termo) || f.material.toLowerCase().includes(termo));
+            
+            // Pesquisa aprimorada em todos os campos
+            const filtrados = baseDados.filter(f => 
+                f.nome.toLowerCase().includes(t) || 
+                f.material.toLowerCase().includes(t) ||
+                f.contato.toLowerCase().includes(t) ||
+                f.email.toLowerCase().includes(t) ||
+                f.tel.toLowerCase().includes(t)
+            );
             
             document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
-
             container.innerHTML = filtrados.map(f => `
-                <tr class="hover:bg-emerald-50 transition-colors border-b border-slate-50 group">
+                <tr class="hover:bg-emerald-50 transition-colors border-b">
                     <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
-                    <td class="p-4 font-black text-slate-800 uppercase tracking-tight">${f.nome}</td>
-                    <td class="p-4 text-slate-500 text-center">
+                    <td class="p-4 font-black uppercase">${f.nome}</td>
+                    <td class="p-4 text-center">
                         <div class="font-bold text-slate-700">${f.contato}</div>
-                        <div class="text-[10px]">${f.email}</div>
+                        <div class="text-[10px] text-blue-600 underline">${f.email}</div>
                         <div class="text-emerald-600 font-bold">${f.tel}</div>
                     </td>
-                    <td class="p-4 italic font-medium text-slate-600 uppercase">${f.material}</td>
+                    <td class="p-4 italic font-medium uppercase">${f.material}</td>
                 </tr>
             `).join('');
-
-            atualizarSugestoes(); // Garante que a lista de sugestões esteja pronta
+            atualizarSugestoes();
         }
 
         function limparCampos() {
@@ -185,8 +169,7 @@
 
         function iniciarEdicao() {
             const chk = document.querySelector('.chk-item:checked');
-            if(!chk) return alert("Selecione um item na lista abaixo antes de clicar em editar.");
-            
+            if(!chk) return alert("Selecione um item!");
             const item = baseDados.find(f => f.id == chk.value);
             if(item) {
                 document.getElementById('editId').value = item.id;
@@ -205,15 +188,15 @@
         }
 
         function copiarEmails() {
-            const selecionados = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
-            const texto = selecionados.length ? selecionados.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
-            navigator.clipboard.writeText(texto);
-            alert("Lista de e-mails pronta para colar no Outlook!");
+            const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
+            const txt = sel.length ? sel.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
+            navigator.clipboard.writeText(txt);
+            alert("E-mails copiados!");
         }
 
         function removerSelecionados() {
             const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => Number(c.value));
-            if(!sel.length || !confirm(`Deseja excluir ${sel.length} item(ns)?`)) return;
+            if(!sel.length || !confirm(`Excluir ${sel.length} item(ns)?`)) return;
             baseDados = baseDados.filter(f => !sel.includes(f.id));
             localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
             renderizar();
@@ -223,7 +206,7 @@
             const blob = new Blob([JSON.stringify(baseDados, null, 2)], {type: 'application/json'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `HUB_BACKUP_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
+            a.download = `HUB_BACKUP.json`;
             a.click();
         }
 
@@ -232,13 +215,11 @@
             reader.onload = (ev) => {
                 try {
                     const dados = JSON.parse(ev.target.result);
-                    if(confirm("Isso irá mesclar os dados importados com os atuais. Continuar?")) {
-                        baseDados = [...dados, ...baseDados.filter(b => !dados.find(d => d.id === b.id))];
-                        localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
-                        renderizar();
-                        alert("Sincronização concluída!");
-                    }
-                } catch(err) { alert("Arquivo inválido!"); }
+                    baseDados = [...dados, ...baseDados.filter(b => !dados.find(d => d.id === b.id))];
+                    localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
+                    renderizar();
+                    alert("Dados importados!");
+                } catch(err) { alert("Erro no arquivo!"); }
             };
             reader.readAsText(e.target.files[0]);
         }
