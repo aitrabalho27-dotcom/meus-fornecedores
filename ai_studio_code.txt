@@ -1,0 +1,889 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Plus, 
+  Search, 
+  Trash2, 
+  Edit2, 
+  Copy, 
+  CheckCircle, 
+  X, 
+  User, 
+  Mail, 
+  Phone, 
+  Tag, 
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  Bell,
+  Settings,
+  LayoutDashboard,
+  HelpCircle,
+  LogOut,
+  Package,
+  SearchCode,
+  Download,
+  Upload,
+  Users
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '@/lib/utils';
+
+// Types
+interface Supplier {
+  id: string;
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  materialType: string;
+  notes: string;
+  createdAt: number;
+}
+
+const normalize = (val: string) => val?.toLowerCase().trim() || '';
+
+export default function SuppliersPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Search and Filter State
+  const [searchForm, setSearchForm] = useState({
+    companyName: '',
+    contactPerson: '',
+    email: '',
+    phone: '',
+    materialType: ''
+  });
+
+  // Form State for Adding/Editing
+  const [formData, setFormData] = useState({
+    companyName: '',
+    contactPerson: '',
+    email: '',
+    phone: '',
+    materialType: '',
+    notes: ''
+  });
+
+  const [copiedEmails, setCopiedEmails] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Sync to Local Storage
+  const syncToStorage = (data: Supplier[]) => {
+    localStorage.setItem('hub_fornecedores_db', JSON.stringify(data));
+    setSuppliers(data);
+  };
+
+  // Initial Load
+  useEffect(() => {
+    const authStatus = localStorage.getItem('hub_auth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+    
+    setLoading(true);
+    const saved = localStorage.getItem('hub_fornecedores_db');
+    if (saved) {
+      try {
+        setSuppliers(JSON.parse(saved));
+      } catch (e) {
+        console.error("Error parsing stored data");
+      }
+    }
+    setLoading(false);
+  }, [isAuthenticated]);
+
+  // Derived suggestions
+  const materialSuggestions = useMemo(() => {
+    const types = suppliers.map(s => s.materialType).filter(Boolean);
+    return Array.from(new Set(types));
+  }, [suppliers]);
+
+  const filteredSuppliers = useMemo(() => {
+    return suppliers.filter(s => {
+      return (
+        normalize(s.companyName).includes(normalize(searchForm.companyName)) &&
+        normalize(s.contactPerson).includes(normalize(searchForm.contactPerson)) &&
+        normalize(s.email).includes(normalize(searchForm.email)) &&
+        normalize(s.phone).includes(normalize(searchForm.phone)) &&
+        normalize(s.materialType).includes(normalize(searchForm.materialType))
+      );
+    }).sort((a, b) => b.createdAt - a.createdAt);
+  }, [suppliers, searchForm]);
+
+  // Paginated list
+  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+  const paginatedSuppliers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredSuppliers.slice(start, start + itemsPerPage);
+  }, [filteredSuppliers, currentPage]);
+
+  // Reset page when filtering
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchForm]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setSearchForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.companyName || !formData.email) {
+      alert("Nome da empresa e e-mail são obrigatórios.");
+      return;
+    }
+
+    if (editingId) {
+      const nextSuppliers = suppliers.map(s => 
+        s.id === editingId ? { ...s, ...formData } : s
+      );
+      syncToStorage(nextSuppliers);
+      setEditingId(null);
+    } else {
+      const newSupplier: Supplier = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...formData,
+        createdAt: Date.now()
+      };
+      syncToStorage([...suppliers, newSupplier]);
+    }
+    
+    setFormData({
+      companyName: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      materialType: '',
+      notes: ''
+    });
+  };
+
+  const exportData = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(suppliers));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `hub_fornecedores_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (Array.isArray(json)) {
+          const existingEmails = new Set(suppliers.map(s => normalize(s.email)));
+          const existingNames = new Set(suppliers.map(s => normalize(s.companyName)));
+          
+          const newEntries: Supplier[] = [];
+          let duplicatesCount = 0;
+
+          json.forEach((item: any) => {
+            if (!item.companyName || !item.email) return;
+            const normEmail = normalize(item.email);
+            const normName = normalize(item.companyName);
+
+            if (!existingEmails.has(normEmail) && !existingNames.has(normName)) {
+              newEntries.push({
+                ...item,
+                id: item.id || Math.random().toString(36).substr(2, 9),
+                createdAt: item.createdAt || Date.now()
+              });
+              existingEmails.add(normEmail);
+              existingNames.add(normName);
+            } else {
+              duplicatesCount++;
+            }
+          });
+
+          if (newEntries.length > 0) {
+            const nextSuppliers = [...newEntries, ...suppliers];
+            syncToStorage(nextSuppliers);
+            alert(`Sucesso! ${newEntries.length} novos fornecedores importados. ${duplicatesCount > 0 ? `(${duplicatesCount} duplicados ignorados)` : ''}`);
+          } else {
+            alert(`Nenhum novo fornecedor adicionado. ${duplicatesCount} já existem na sua lista.`);
+          }
+        }
+      } catch (err) {
+        alert("Erro ao ler o arquivo. Certifique-se de que é um JSON válido.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteId) {
+      const nextSuppliers = suppliers.filter(s => s.id !== deleteId);
+      syncToStorage(nextSuppliers);
+      if (editingId === deleteId) setEditingId(null);
+      const nextSelected = new Set(selectedIds);
+      nextSelected.delete(deleteId);
+      setSelectedIds(nextSelected);
+      setDeleteId(null);
+    }
+  };
+
+  const confirmBulkDelete = () => {
+    const nextSuppliers = suppliers.filter(s => !selectedIds.has(s.id));
+    syncToStorage(nextSuppliers);
+    setSelectedIds(new Set());
+    setIsBulkDeleteModalOpen(false);
+  };
+
+  const handleEdit = (supplier: Supplier) => {
+    setEditingId(supplier.id);
+    setFormData({
+      companyName: supplier.companyName,
+      contactPerson: supplier.contactPerson,
+      email: supplier.email,
+      phone: supplier.phone,
+      materialType: supplier.materialType,
+      notes: supplier.notes
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const clearForm = () => {
+    setSearchForm({
+      companyName: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      materialType: ''
+    });
+    setFormData({
+      companyName: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      materialType: '',
+      notes: ''
+    });
+    setEditingId(null);
+  };
+
+  const handleSearchClick = () => {
+    // Logic for triggering search is already automatic with useMemo
+  };
+
+  const toggleSelect = (id: string) => {
+    const nextSelected = new Set(selectedIds);
+    if (nextSelected.has(id)) nextSelected.delete(id);
+    else nextSelected.add(id);
+    setSelectedIds(nextSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === paginatedSuppliers.length && paginatedSuppliers.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(paginatedSuppliers.map(s => s.id)));
+    }
+  };
+
+  const copyEmails = () => {
+    const emailsToCopy = selectedIds.size > 0 
+      ? suppliers.filter(s => selectedIds.has(s.id)).map(s => s.email).join(', ')
+      : filteredSuppliers.map(s => s.email).join(', ');
+    
+    if (!emailsToCopy) {
+      alert("Nenhum e-mail para copiar.");
+      return;
+    }
+    
+    navigator.clipboard.writeText(emailsToCopy);
+    setCopiedEmails(true);
+    setTimeout(() => setCopiedEmails(false), 2000);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('hub_auth');
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated && !loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4">
+              <Package className="text-[#10B981]" size={32} />
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Hub de Fornecedores</h1>
+            <p className="text-slate-500 text-sm mt-1">Gestão inteligente e simplificada</p>
+          </div>
+          <button 
+            onClick={() => setIsAuthenticated(true)}
+            className="w-full bg-[#10B981] text-white font-bold py-4 rounded-2xl hover:bg-[#059669] transition-all shadow-lg shadow-emerald-100 active:scale-95"
+          >
+            Acessar Plataforma
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex font-sans selection:bg-emerald-100 selection:text-emerald-900">
+      
+      {/* Sidebar - Desktop */}
+      <aside className="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white z-40 hidden lg:flex flex-col p-6 overflow-y-auto">
+        <div className="flex items-center gap-3 mb-10 px-2">
+          <div className="p-1.5 bg-emerald-500 rounded-lg">
+            <Package size={20} className="text-white" />
+          </div>
+          <div>
+            <h2 className="font-black text-white text-lg leading-tight">Hub de Fornecedores</h2>
+            <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Gestão Simplificada</p>
+          </div>
+        </div>
+
+        <nav className="flex-1 space-y-1">
+          <a href="#" className="flex items-center gap-3 px-4 py-3 bg-emerald-500/10 text-emerald-400 rounded-xl font-bold text-xs uppercase tracking-wider group transition-all">
+            <LayoutDashboard size={18} />
+            Fornecedores
+            <div className="ml-auto w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider group transition-all">
+            <Users size={18} />
+            Colaboradores
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider group transition-all">
+            <SearchCode size={18} />
+            Mapeamento
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider group transition-all">
+            <Settings size={18} />
+            Ajustes
+          </a>
+          <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider group transition-all">
+            <HelpCircle size={18} />
+            Suporte
+          </a>
+        </nav>
+
+        {/* Database Management Tools */}
+        <div className="px-4 mb-4 space-y-4">
+          <div className="px-4 py-2">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Banco de Dados</p>
+            <div className="space-y-2">
+              <button 
+                onClick={exportData}
+                className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-all text-[11px] font-bold uppercase tracking-wider group"
+              >
+                <Download size={14} className="text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                Exportar Backup
+              </button>
+              <label 
+                className="w-full flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-amber-50 hover:text-amber-700 rounded-lg transition-all text-[11px] font-bold uppercase tracking-wider group cursor-pointer"
+              >
+                <Upload size={14} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
+                Importar Dados
+                <input type="file" accept=".json" onChange={importData} className="hidden" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 mt-auto border-t border-slate-200 pt-4">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-4 text-rose-400 hover:bg-rose-500/10 rounded-xl font-bold text-xs uppercase tracking-widest transition-all group"
+          >
+            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+            Sair
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 min-w-0 transition-all">
+        {/* Header */}
+        <header className="flex justify-between items-center w-full px-4 lg:px-8 h-16 bg-white border-b border-slate-200 sticky top-0 z-50">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+            >
+              <Menu size={20} />
+            </button>
+            <h1 className="text-lg font-black text-slate-900 tracking-tight hidden sm:block">Hub de Fornecedores</h1>
+          </div>
+          
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all relative">
+              <Bell size={20} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
+            </button>
+            <button className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all">
+              <Settings size={20} />
+            </button>
+            <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
+            <button className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 transition-all group">
+              <span className="text-xs font-bold text-slate-700 hidden sm:block">Almoxarifado TI</span>
+              <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden ring-2 ring-slate-100 group-hover:ring-emerald-100 transition-all">
+                <img src="https://picsum.photos/seed/user/100/100" alt="Avatar" className="w-full h-full object-cover" />
+              </div>
+            </button>
+          </div>
+        </header>
+
+        <div className="p-4 lg:p-8 space-y-8 animate-in fade-in duration-500">
+          
+          {/* Form & Search Section */}
+          <section className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            <div className="p-6 lg:p-8 border-b border-slate-50 bg-slate-50/50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 italic font-black text-[#10B981]">
+                  {editingId ? 'E' : 'C'}
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900">{editingId ? 'Editar Fornecedor' : 'Cadastrar Novo Fornecedor'}</h2>
+                  <p className="text-sm text-slate-500 font-medium">{editingId ? 'Atualize as informações do registro selecionado.' : 'Preencha os campos abaixo para adicionar um fornecedor.'}</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-5">
+                {/* Fornecedor */}
+                <div className="col-span-12 md:col-span-4 space-y-1.5 focus-within:scale-[1.01] transition-transform">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                    <Package size={12} className="text-emerald-500" />
+                    Fornecedor (Nome da Empresa)
+                  </label>
+                  <input 
+                    type="text"
+                    name="companyName"
+                    value={editingId ? formData.companyName : searchForm.companyName}
+                    onChange={editingId ? handleFormChange : handleInputChange}
+                    placeholder="Ex: Metalúrgica Gerdau"
+                    className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-[#10B981] focus:ring-4 focus:ring-emerald-50 transition-all text-sm outline-none placeholder:text-slate-300 font-medium"
+                  />
+                </div>
+
+                {/* Contato */}
+                <div className="col-span-12 md:col-span-4 space-y-1.5 focus-within:scale-[1.01] transition-transform">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                    <User size={12} className="text-emerald-500" />
+                    Contato Responsável
+                  </label>
+                  <input 
+                    type="text"
+                    name="contactPerson"
+                    value={editingId ? formData.contactPerson : searchForm.contactPerson}
+                    onChange={editingId ? handleFormChange : handleInputChange}
+                    placeholder="Ex: João Silva"
+                    className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-[#10B981] focus:ring-4 focus:ring-emerald-50 transition-all text-sm outline-none placeholder:text-slate-300 font-medium"
+                  />
+                </div>
+
+                {/* Telefone */}
+                <div className="col-span-12 md:col-span-4 space-y-1.5 focus-within:scale-[1.01] transition-transform">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                    <Phone size={12} className="text-emerald-500" />
+                    Telefone
+                  </label>
+                  <input 
+                    type="text"
+                    name="phone"
+                    value={editingId ? formData.phone : searchForm.phone}
+                    onChange={editingId ? handleFormChange : handleInputChange}
+                    placeholder="+55 (11) 0000-0000"
+                    className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-[#10B981] focus:ring-4 focus:ring-emerald-50 transition-all text-sm outline-none placeholder:text-slate-300 font-medium font-mono"
+                  />
+                </div>
+
+                {/* E-mail */}
+                <div className="col-span-12 md:col-span-4 space-y-1.5 focus-within:scale-[1.01] transition-transform">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                    <Mail size={12} className="text-emerald-500" />
+                    E-mail Corporativo
+                  </label>
+                  <input 
+                    type="email"
+                    name="email"
+                    value={editingId ? formData.email : searchForm.email}
+                    onChange={editingId ? handleFormChange : handleInputChange}
+                    placeholder="fornecedor@exemplo.com.br"
+                    className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-[#10B981] focus:ring-4 focus:ring-emerald-50 transition-all text-sm outline-none placeholder:text-slate-300 font-medium"
+                  />
+                </div>
+
+                {/* Tipo de Material */}
+                <div className="col-span-12 md:col-span-8 space-y-1.5 focus-within:scale-[1.01] transition-transform">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                    <Tag size={12} className="text-emerald-500" />
+                    Tipo de Material
+                  </label>
+                  <textarea 
+                    name="materialType"
+                    value={editingId ? formData.materialType : searchForm.materialType}
+                    onChange={editingId ? handleFormChange : handleInputChange}
+                    rows={1}
+                    placeholder="Ex: Aço Carbono SAE 1020 com certificação ISO 9001..."
+                    className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-[#10B981] focus:ring-4 focus:ring-emerald-50 transition-all text-sm outline-none placeholder:text-slate-300 font-medium resize-none"
+                  />
+                  {!editingId && materialSuggestions.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                       {materialSuggestions.slice(0, 5).map(tag => (
+                         <button 
+                          key={tag}
+                          type="button" 
+                          onClick={() => setSearchForm(prev => ({ ...prev, materialType: tag }))}
+                          className="bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 text-slate-500 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border border-slate-200"
+                         >
+                           {tag}
+                         </button>
+                       ))}
+                    </div>
+                  )}
+                </div>
+
+                <AnimatePresence>
+                  {editingId && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="col-span-12 space-y-1.5 focus-within:scale-[1.01] transition-transform"
+                    >
+                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                        <FileText size={12} className="text-emerald-500" />
+                        Observações Adicionais
+                      </label>
+                      <textarea 
+                        name="notes"
+                        value={formData.notes}
+                        onChange={handleFormChange}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-[#10B981] focus:ring-4 focus:ring-emerald-50 transition-all text-sm outline-none placeholder:text-slate-300 font-medium resize-none shadow-inner"
+                        placeholder="Insira detalhes específicos sobre prazos, qualidade ou formas de pagamento..."
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="col-span-12 flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-50">
+                <button 
+                  type="button" 
+                  onClick={clearForm}
+                  className="w-full sm:w-auto px-8 py-3.5 bg-slate-100 text-slate-500 border border-slate-200 font-bold rounded-xl hover:bg-slate-200 hover:text-slate-700 transition-all text-xs uppercase tracking-widest active:scale-95 cursor-pointer shadow-sm"
+                >
+                  Limpar
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleSearchClick}
+                  className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-slate-200 active:scale-95 cursor-pointer"
+                >
+                  <Search size={14} />
+                  Pesquisar
+                </button>
+                <button 
+                  type="submit"
+                  className={cn(
+                    "w-full sm:w-auto px-8 py-3.5 text-white font-bold rounded-xl transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 cursor-pointer",
+                    editingId 
+                      ? "bg-amber-500 hover:bg-amber-600 shadow-xl shadow-amber-100" 
+                      : "bg-[#10B981] hover:bg-[#059669] shadow-xl shadow-emerald-100"
+                  )}
+                >
+                  {editingId ? <Edit2 size={14} /> : <CheckCircle size={14} />}
+                  {editingId ? 'Salvar Alterações' : 'Cadastrar Fornecedor'}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* List Section */}
+          <section className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden min-h-[400px] flex flex-col">
+            <div className="p-6 border-b border-slate-50 bg-white sticky top-16 z-20 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-black text-slate-900">Lista de Fornecedores</h2>
+                <div className="bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-slate-200">
+                  {filteredSuppliers.length} encontrados
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button 
+                  type="button"
+                  onClick={() => editingId ? setEditingId(null) : (selectedIds.size > 0 && handleEdit(suppliers.find(s => s.id === Array.from(selectedIds)[0])!))}
+                  className={cn(
+                    "flex-1 sm:flex-none px-4 py-2 border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 rounded-lg transition-all text-xs flex items-center justify-center gap-2 font-bold group shadow-sm active:scale-95 cursor-pointer",
+                    selectedIds.size !== 1 && !editingId && "opacity-40 cursor-not-allowed pointer-events-none"
+                  )}
+                >
+                  <Edit2 size={14} className="group-hover:scale-110 transition-transform" />
+                  Editar
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    if (selectedIds.size === 0) {
+                      alert("Por favor, selecione ao menos um fornecedor para excluir.");
+                      return;
+                    }
+                    setIsBulkDeleteModalOpen(true);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  className="flex-1 sm:flex-none px-4 py-2 border border-rose-500 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all text-xs flex items-center justify-center gap-2 font-bold group shadow-sm active:scale-95"
+                >
+                  <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
+                  Excluir {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
+                </button>
+                <button 
+                  type="button"
+                  onClick={copyEmails}
+                  className="flex-1 sm:flex-none px-4 py-2 border border-emerald-500 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-all text-xs flex items-center justify-center gap-2 font-bold group shadow-sm relative overflow-hidden active:scale-95 cursor-pointer"
+                >
+                  {copiedEmails ? <CheckCircle size={14} className="text-emerald-600" /> : <Copy size={14} className="group-hover:scale-110 transition-transform" />}
+                  {copiedEmails ? 'Copiado!' : 'Copiar E-mails'}
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto flex-1 custom-scrollbar">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-50/50 sticky top-0">
+                  <tr className="border-b border-slate-100">
+                    <th className="p-4 w-12">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.size === paginatedSuppliers.length && paginatedSuppliers.length > 0}
+                        onChange={toggleSelectAll}
+                        className="rounded border-slate-300 text-[#10B981] focus:ring-[#10B981] cursor-pointer" 
+                      />
+                    </th>
+                    <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest italic">Fornecedor</th>
+                    <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest italic">Contato</th>
+                    <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest italic">E-mail</th>
+                    <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest italic">Telefone</th>
+                    <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest italic">Tipo de Material</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <AnimatePresence mode="popLayout">
+                    {paginatedSuppliers.map((supplier) => (
+                      <motion.tr 
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        key={supplier.id}
+                        className={cn(
+                          "group hover:bg-emerald-50/10 transition-colors",
+                          selectedIds.has(supplier.id) && "bg-emerald-50/50",
+                          editingId === supplier.id && "bg-amber-50"
+                        )}
+                      >
+                        <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedIds.has(supplier.id)}
+                            onChange={() => toggleSelect(supplier.id)}
+                            className="rounded border-slate-300 text-[#10B981] focus:ring-[#10B981] cursor-pointer" 
+                          />
+                        </td>
+                        <td className="p-4 font-mono text-xs font-bold text-slate-900 cursor-pointer" onClick={() => toggleSelect(supplier.id)}>{supplier.companyName}</td>
+                        <td className="p-4 text-sm cursor-pointer" onClick={() => toggleSelect(supplier.id)}>{supplier.contactPerson}</td>
+                        <td className="p-4 text-sm text-slate-500 hover:text-[#10B981] transition-colors cursor-pointer" onClick={() => toggleSelect(supplier.id)}>{supplier.email}</td>
+                        <td className="p-4 text-sm font-mono text-slate-500 cursor-pointer" onClick={() => toggleSelect(supplier.id)}>{supplier.phone}</td>
+                        <td className="p-4 cursor-pointer" onClick={() => toggleSelect(supplier.id)}>
+                          <span className="inline-block bg-slate-100 text-slate-700 px-2 py-1 rounded text-[11px] font-mono border border-slate-200">
+                            {supplier.materialType}
+                          </span>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+
+                  {filteredSuppliers.length === 0 && !loading && (
+                    <tr>
+                      <td colSpan={6} className="p-12 text-center">
+                        <div className="flex flex-col items-center gap-3 opacity-30">
+                          <Package size={48} />
+                          <p className="font-bold text-sm">Nenhum fornecedor encontrado...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+              <div>
+                Mostrando {Math.min(filteredSuppliers.length, (currentPage - 1) * itemsPerPage + 1)} a {Math.min(filteredSuppliers.length, currentPage * itemsPerPage)} de {filteredSuppliers.length} fornecedores
+              </div>
+              <div className="flex gap-1">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={cn(
+                      "w-8 h-8 flex items-center justify-center border rounded font-bold transition-all",
+                      currentPage === page 
+                        ? "border-[#10B981] bg-emerald-50 text-[#10B981]" 
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    )}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button 
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="w-8 h-8 flex items-center justify-center border border-slate-200 bg-white rounded hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      {/* Unified Delete Confirmation Modal */}
+      <AnimatePresence>
+        {(isBulkDeleteModalOpen || deleteId) && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 border border-slate-100"
+            >
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center shrink-0">
+                  <Trash2 size={24} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {deleteId ? 'Excluir Fornecedor?' : (selectedIds.size === 1 ? 'Excluir Fornecedor?' : `Excluir ${selectedIds.size} Fornecedores?`)}
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {deleteId 
+                      ? `Deseja remover permanentemente o fornecedor ${suppliers.find(s => s.id === deleteId)?.companyName}?`
+                      : (selectedIds.size === 1 
+                        ? 'Esta ação é irreversível. O fornecedor selecionado será removido permanentemente da lista.' 
+                        : `Esta ação é irreversível. Os ${selectedIds.size} fornecedores selecionados serão removidos permanentemente da lista.`)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button 
+                  onClick={() => {
+                    setIsBulkDeleteModalOpen(false);
+                    setDeleteId(null);
+                  }}
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={deleteId ? confirmDelete : confirmBulkDelete}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-lg shadow-rose-100 transition-all cursor-pointer"
+                >
+                  Confirmar Exclusão
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[50] lg:hidden"
+            />
+            <motion.aside 
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              className="fixed left-0 top-0 bottom-0 w-72 bg-slate-900 z-[60] lg:hidden flex flex-col p-6 shadow-2xl"
+            >
+               {/* Mobile sidebar content same as desktop but with close button */}
+               <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 bg-emerald-500 rounded-lg">
+                    <Package size={20} className="text-white" />
+                  </div>
+                  <h2 className="font-black text-white text-lg">Hub Fornecedores</h2>
+                </div>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:text-white">
+                  <X size={20} />
+                </button>
+               </div>
+               
+               <nav className="flex-1 space-y-2">
+                <a href="#" className="flex items-center gap-3 px-4 py-3 bg-emerald-500/20 text-emerald-400 rounded-xl font-bold text-sm tracking-wide">
+                  <LayoutDashboard size={18} />
+                  Fornecedores
+                </a>
+               </nav>
+
+               <div className="px-4 pt-4 border-t border-slate-800">
+                 <button 
+                   onClick={handleLogout}
+                   className="w-full flex items-center gap-3 px-4 py-4 text-rose-400 font-bold text-sm uppercase tracking-widest"
+                 >
+                   <LogOut size={18} />
+                   Sair
+                 </button>
+               </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
