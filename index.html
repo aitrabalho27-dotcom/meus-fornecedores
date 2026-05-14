@@ -13,8 +13,29 @@
         .btn-secondary { background-color: #1e293b; color: white; }
         .btn-outline { border: 1px solid #e2e8f0; color: #64748b; background: white; }
         .btn-outline:hover { background: #f1f5f9; }
+        
+        /* PADRONIZAÇÃO DAS CAIXAS DE TEXTO */
+        .input-padrao {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #f8fafc; /* bg-slate-50 */
+            border: 2px solid #e2e8f0; /* borda um pouco mais visível */
+            border-radius: 0.75rem; /* rounded-xl */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold para clareza */
+            outline: none;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .input-padrao:focus {
+            border-color: #10b981; /* verde ao clicar */
+            background-color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+        }
+        /* Ajuste específico para e-mail não ficar todo em maiúsculo se não quiser */
+        #i_email { text-transform: lowercase; }
+
         #appSection { display: none; }
-        /* Estilo para destacar os ícones de contato */
         .contact-icon { font-size: 10px; margin-right: 4px; opacity: 0.6; }
     </style>
 </head>
@@ -50,44 +71,47 @@
                     <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Novo Cadastro / Edição</h3>
                     <input type="hidden" id="editId">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <input type="text" id="i_nome" placeholder="FORNECEDOR" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
-                        <input type="text" id="i_contato" placeholder="CONTATO" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none uppercase">
-                        <input type="text" id="i_email" placeholder="E-MAIL" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none">
+                        <input type="text" id="i_nome" placeholder="FORNECEDOR" class="input-padrao">
+                        <input type="text" id="i_contato" placeholder="CONTATO" class="input-padrao">
+                        <input type="text" id="i_email" placeholder="E-MAIL" class="input-padrao">
                         
-                        <input type="text" id="i_tel" maxlength="15" onkeyup="mascaraTelefone(this)" placeholder="TELEFONE (Apenas números)" class="w-full p-3 bg-slate-50 border rounded-lg text-sm font-bold text-emerald-600 outline-none">
+                        <input type="text" id="i_tel" maxlength="15" onkeyup="mascaraTelefone(this)" placeholder="TELEFONE" class="input-padrao text-emerald-600 font-bold">
                         
                         <div class="md:col-span-2">
-                            <input list="materiaisSugeridos" type="text" id="i_mat" autocomplete="off" placeholder="TIPO DE MATERIAL" class="w-full p-3 bg-slate-50 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 uppercase">
+                            <input list="materiaisSugeridos" type="text" id="i_mat" autocomplete="off" placeholder="TIPO DE MATERIAL" class="input-padrao">
                             <datalist id="materiaisSugeridos"></datalist>
                         </div>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 uppercase">Limpar</button>
-                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase shadow-lg">✅ Salvar Fornecedor</button>
+                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 uppercase hover:text-slate-600 transition-colors">Limpar</button>
+                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg">✅ Salvar Fornecedor</button>
                     </div>
                 </div>
 
                 <div class="card p-4 bg-emerald-50 border-emerald-200">
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-500">🔍</span>
-                        <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL (Busque por Nome, Material, E-mail ou Telefone...)" class="w-full pl-10 p-4 bg-white border-2 border-emerald-200 rounded-xl text-sm font-bold outline-none focus:border-emerald-500 transition-all uppercase shadow-sm">
+                        <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL (Busque por Nome, Material, E-mail ou Telefone...)" class="w-full pl-10 p-4 bg-white border-2 border-emerald-200 rounded-xl text-sm font-bold outline-none focus:border-emerald-500 transition-all uppercase placeholder:text-emerald-300 shadow-sm">
                     </div>
                 </div>
 
                 <div class="card overflow-hidden">
                     <div class="p-4 border-b flex justify-between bg-white sticky top-0 z-10 shadow-sm">
-                        <span id="contador" class="text-[10px] bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-bold border border-emerald-200 uppercase">0 ENCONTRADOS</span>
+                        <div class="flex items-center gap-3">
+                            <h2 class="font-black text-slate-800 text-xs uppercase tracking-tight">Lista de Fornecedores</h2>
+                            <span id="contador" class="text-[10px] bg-emerald-100 px-2 py-1 rounded text-emerald-700 font-bold border border-emerald-200">0 ENCONTRADOS</span>
+                        </div>
                         <div class="flex gap-2">
-                            <button onclick="iniciarEdicao()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-orange-500 uppercase">🖊️ Editar</button>
-                            <button onclick="removerSelecionados()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-red-500 uppercase">🗑️ Excluir</button>
-                            <button onclick="copiarEmails()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-emerald-600 uppercase">📋 Copiar E-mails</button>
+                            <button onclick="iniciarEdicao()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-orange-500 uppercase hover:border-orange-500 transition-all">🖊️ Editar</button>
+                            <button onclick="removerSelecionados()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-red-500 uppercase hover:border-red-500 transition-all">🗑️ Excluir</button>
+                            <button onclick="copiarEmails()" class="btn-outline px-4 py-2 rounded-lg text-[10px] font-bold text-emerald-600 uppercase hover:border-emerald-500 transition-all">📋 Copiar E-mails</button>
                         </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase border-b">
+                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-tighter border-b">
                                 <tr>
                                     <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
                                     <th class="p-4">Fornecedor</th>
@@ -114,11 +138,10 @@
             } else { alert("Senha incorreta"); }
         }
 
-        // Função de Máscara de Telefone Automática
         function mascaraTelefone(input) {
-            let v = input.value.replace(/\D/g, ""); // Remove tudo que não é dígito
-            v = v.replace(/^(\d{2})(\d)/g, "($1) $2"); // Adiciona parênteses no DDD
-            v = v.replace(/(\d{5})(\d)/, "$1-$2"); // Adiciona o hífen após o 5º dígito
+            let v = input.value.replace(/\D/g, "");
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d{5})(\d)/, "$1-$2");
             input.value = v;
         }
 
@@ -172,15 +195,15 @@
             document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
 
             container.innerHTML = filtrados.map(f => `
-                <tr class="hover:bg-emerald-50 transition-colors border-b">
+                <tr class="hover:bg-emerald-50 transition-colors border-b border-slate-50">
                     <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
-                    <td class="p-4 font-black uppercase text-slate-800">${f.nome}</td>
+                    <td class="p-4 font-black text-slate-800 uppercase tracking-tight">${f.nome}</td>
                     <td class="p-4 text-center">
                         <div class="font-bold text-slate-700 flex items-center justify-center"><span class="contact-icon">👤</span> ${f.contato}</div>
                         <div class="text-[11px] text-blue-700 font-medium my-0.5"><span class="contact-icon">✉️</span> ${f.email}</div>
                         <div class="font-bold text-emerald-600"><span class="contact-icon">📞</span> ${f.tel}</div>
                     </td>
-                    <td class="p-4 italic font-medium uppercase text-slate-600">${f.material}</td>
+                    <td class="p-4 italic font-medium text-slate-600 uppercase">${f.material}</td>
                 </tr>
             `).join('');
             atualizarSugestoes();
@@ -218,7 +241,7 @@
             const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
             const texto = sel.length ? sel.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
             navigator.clipboard.writeText(texto);
-            alert("E-mails copiados para a área de transferência!");
+            alert("E-mails copiados!");
         }
 
         function removerSelecionados() {
@@ -245,8 +268,8 @@
                     baseDados = [...dados, ...baseDados.filter(b => !dados.find(d => d.id === b.id))];
                     localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
                     renderizar();
-                    alert("Dados importados com sucesso!");
-                } catch(err) { alert("Erro ao ler o arquivo de backup!"); }
+                    alert("Importado!");
+                } catch(err) { alert("Erro no arquivo!"); }
             };
             reader.readAsText(e.target.files[0]);
         }
