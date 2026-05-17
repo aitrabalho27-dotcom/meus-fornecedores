@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Dark Mode v4.3</title>
+    <title>Hub de Fornecedores - Dark Mode v4.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
@@ -34,27 +34,19 @@
         #appSection { display: none; }
         .contact-icon { font-size: 11px; margin-right: 6px; vertical-align: middle; }
         
-        /* BARRA DE FERRAMENTAS FIXA */
-        .sticky-tools {
-            position: -webkit-sticky;
+        /* NOVA ESTRUTURA FIXA UNIFICADA */
+        .sticky-wrapper {
             position: sticky;
-            top: 0; 
+            top: 0;
             z-index: 50;
+            background-color: #0f172a; /* Cor do fundo da página para isolar */
+            padding-bottom: 2px;
+        }
+
+        .header-fixed {
             background-color: #1e293b;
             border-bottom: 2px solid #334155;
         }
-
-        /* CABEÇALHO DA TABELA FIXO - Ajustado para não cobrir o primeiro item */
-        .sticky-thead th {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 58px; /* Altura da barra superior */
-            z-index: 40;
-            background-color: #0f172a;
-            /* O segredo para não sumir o primeiro item é garantir que a tabela tenha border-separate */
-        }
-        
-        table { border-collapse: separate; border-spacing: 0; }
 
         tr:hover { background-color: #334155 !important; }
         
@@ -114,28 +106,33 @@
                 </div>
 
                 <div class="card overflow-hidden">
-                    <div class="sticky-tools p-4 flex justify-between items-center rounded-t-xl">
-                        <div class="flex items-center gap-3">
-                            <h2 class="font-black text-slate-100 text-xs uppercase">Fornecedores</h2>
-                            <span id="contador" class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold border border-emerald-900/50">0 ENCONTRADOS</span>
+                    <div class="sticky-wrapper">
+                        <div class="header-fixed p-4 flex justify-between items-center rounded-t-xl">
+                            <div class="flex items-center gap-3">
+                                <h2 class="font-black text-slate-100 text-xs uppercase">Fornecedores</h2>
+                                <span id="contador" class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold border border-emerald-900/50">0 ENCONTRADOS</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400">🖊️ EDITAR</button>
+                                <button onclick="removerSelecionados()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-red-400">🗑️ EXCLUIR</button>
+                                <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400">📋 COPIAR E-MAILS</button>
+                            </div>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400">🖊️ EDITAR</button>
-                            <button onclick="removerSelecionados()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-red-400">🗑️ EXCLUIR</button>
-                            <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400">📋 COPIAR E-MAILS</button>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto">
+                        
                         <table class="w-full text-left">
-                            <thead class="sticky-thead text-[10px] font-black text-slate-500 uppercase">
+                            <thead class="text-[10px] font-black text-slate-500 uppercase bg-slate-900">
                                 <tr>
-                                    <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
-                                    <th class="p-4">Fornecedor</th>
-                                    <th class="p-4 text-center">Contato / E-mail / Tel</th>
-                                    <th class="p-4">Material</th>
+                                    <th class="p-4 w-12 text-center border-b border-slate-800"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
+                                    <th class="p-4 border-b border-slate-800">Fornecedor</th>
+                                    <th class="p-4 text-center border-b border-slate-800">Contato / E-mail / Tel</th>
+                                    <th class="p-4 border-b border-slate-800">Material</th>
                                 </tr>
                             </thead>
+                        </table>
+                    </div>
+
+                    <div class="overflow-x-auto mt-[-1px]">
+                        <table class="w-full text-left">
                             <tbody id="tabelaBody" class="divide-y divide-slate-800 text-[11px]"></tbody>
                         </table>
                     </div>
@@ -210,7 +207,7 @@
             
             container.innerHTML = filtrados.map(f => `
                 <tr class="hover:bg-slate-800 border-b border-slate-800">
-                    <td class="p-4 text-center"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
+                    <td class="p-4 text-center w-12"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
                     <td class="p-4 td-nome">${f.nome}</td>
                     <td class="p-4 text-center td-contato">
                         <div class="flex items-center justify-center mb-1"><span class="contact-icon text-slate-400">👤</span> ${f.contato}</div>
