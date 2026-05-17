@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Dark Mode v4.2</title>
+    <title>Hub de Fornecedores - Dark Mode v4.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
@@ -34,25 +34,28 @@
         #appSection { display: none; }
         .contact-icon { font-size: 11px; margin-right: 6px; vertical-align: middle; }
         
-        /* AJUSTE CRÍTICO PARA O STICKY FUNCIONAR */
+        /* BARRA DE FERRAMENTAS FIXA */
         .sticky-tools {
-            position: -webkit-sticky; /* Suporte Safari */
+            position: -webkit-sticky;
             position: sticky;
-            top: -1px; /* Ligeiro offset para cobrir a borda superior */
+            top: 0; 
             z-index: 50;
-            background-color: #1e293b; /* Mesma cor do card */
+            background-color: #1e293b;
             border-bottom: 2px solid #334155;
         }
 
+        /* CABEÇALHO DA TABELA FIXO - Ajustado para não cobrir o primeiro item */
         .sticky-thead th {
             position: -webkit-sticky;
             position: sticky;
-            top: 58px; /* Altura aproximada da barra de ferramentas acima */
+            top: 58px; /* Altura da barra superior */
             z-index: 40;
             background-color: #0f172a;
-            box-shadow: inset 0 -1px 0 #334155; /* Simula a borda inferior */
+            /* O segredo para não sumir o primeiro item é garantir que a tabela tenha border-separate */
         }
         
+        table { border-collapse: separate; border-spacing: 0; }
+
         tr:hover { background-color: #334155 !important; }
         
         .td-nome { font-weight: 700; color: #f1f5f9; text-transform: uppercase; padding: 1rem; }
@@ -110,7 +113,7 @@
                     <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL (Busque por Nome, Material, E-mail ou Telefone...)" class="w-full p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none uppercase shadow-inner placeholder:text-slate-600">
                 </div>
 
-                <div class="card">
+                <div class="card overflow-hidden">
                     <div class="sticky-tools p-4 flex justify-between items-center rounded-t-xl">
                         <div class="flex items-center gap-3">
                             <h2 class="font-black text-slate-100 text-xs uppercase">Fornecedores</h2>
