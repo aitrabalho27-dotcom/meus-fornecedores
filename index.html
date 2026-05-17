@@ -34,8 +34,24 @@
         #appSection { display: none; }
         .contact-icon { font-size: 11px; margin-right: 6px; vertical-align: middle; }
         
-        /* Ajuste para garantir que o cabeçalho fixo não fique transparente */
-        .sticky-header { position: sticky; top: 0; z-index: 40; background-color: #0f172a; }
+        /* AJUSTE CRÍTICO PARA O STICKY FUNCIONAR */
+        .sticky-tools {
+            position: -webkit-sticky; /* Suporte Safari */
+            position: sticky;
+            top: -1px; /* Ligeiro offset para cobrir a borda superior */
+            z-index: 50;
+            background-color: #1e293b; /* Mesma cor do card */
+            border-bottom: 2px solid #334155;
+        }
+
+        .sticky-thead th {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 58px; /* Altura aproximada da barra de ferramentas acima */
+            z-index: 40;
+            background-color: #0f172a;
+            box-shadow: inset 0 -1px 0 #334155; /* Simula a borda inferior */
+        }
         
         tr:hover { background-color: #334155 !important; }
         
@@ -68,7 +84,7 @@
             <button onclick="location.reload()" class="mt-auto bg-slate-800 p-3 rounded-xl text-[10px] font-black text-slate-400 hover:text-red-400 uppercase border border-slate-700">Sair</button>
         </aside>
 
-        <main class="flex-1 p-4 lg:p-8 overflow-y-auto bg-[#0f172a]">
+        <main class="flex-1 p-4 lg:p-8">
             <div class="max-w-6xl mx-auto space-y-6">
                 
                 <div class="card p-6 border-t-4 border-t-emerald-600">
@@ -94,8 +110,8 @@
                     <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL (Busque por Nome, Material, E-mail ou Telefone...)" class="w-full p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none uppercase shadow-inner placeholder:text-slate-600">
                 </div>
 
-                <div class="card overflow-hidden">
-                    <div class="sticky top-0 z-30 p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 shadow-md">
+                <div class="card">
+                    <div class="sticky-tools p-4 flex justify-between items-center rounded-t-xl">
                         <div class="flex items-center gap-3">
                             <h2 class="font-black text-slate-100 text-xs uppercase">Fornecedores</h2>
                             <span id="contador" class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold border border-emerald-900/50">0 ENCONTRADOS</span>
@@ -108,8 +124,8 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="sticky top-[61px] z-20 text-[10px] font-black text-slate-500 uppercase border-b border-slate-800 bg-slate-950">
+                        <table class="w-full text-left">
+                            <thead class="sticky-thead text-[10px] font-black text-slate-500 uppercase">
                                 <tr>
                                     <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
                                     <th class="p-4">Fornecedor</th>
