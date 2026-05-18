@@ -29,9 +29,13 @@
 
         tr:hover { background-color: #334155 !important; }
         .td-nome { font-weight: 700; color: #f1f5f9; text-transform: uppercase; padding: 1rem; }
-        .td-contato { font-weight: 500; color: #cbd5e1; padding: 1rem; }
+        
+        /* AJUSTE DE ALINHAMENTO DO CONTATO */
+        .td-contato { font-weight: 500; color: #cbd5e1; padding: 1rem; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+        .contact-line { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; width: 100%; }
+        
         .td-material { font-weight: 500; color: #94a3b8; text-transform: uppercase; padding: 1rem; white-space: pre-wrap; font-size: 11px; }
-        .contact-icon { font-size: 11px; margin-right: 6px; }
+        .contact-icon { font-size: 11px; width: 14px; text-align: center; }
 
         textarea.input-padrao { min-height: 80px; resize: vertical; }
     </style>
@@ -50,11 +54,14 @@
         
         <aside class="w-full lg:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col">
             <h1 class="text-xl font-black text-emerald-500 uppercase italic mb-8">Hub de<br>Fornecedores</h1>
-            <nav class="flex-1 space-y-2 text-xs font-semibold">
+            <nav class="space-y-2 text-xs font-semibold">
                 <button onclick="exportar()" class="w-full text-left p-3 text-slate-300 hover:bg-slate-800 rounded-lg">💾 EXPORTAR BACKUP</button>
                 <label class="block w-full text-left p-3 text-slate-300 hover:bg-slate-800 rounded-lg cursor-pointer">📂 IMPORTAR DADOS <input type="file" class="hidden" onchange="importar(event)"></label>
+                <button onclick="location.reload()" class="w-full text-left p-3 text-red-400 bg-red-950/20 hover:bg-red-900/30 rounded-lg mt-4 uppercase font-black italic">🚪 Sair do Sistema</button>
             </nav>
-            <button onclick="location.reload()" class="mt-auto bg-slate-800 p-3 rounded-xl text-[10px] font-black text-slate-400 uppercase">Sair</button>
+            <div class="mt-auto p-4 bg-slate-800/30 rounded-xl border border-slate-800">
+                <p class="text-[9px] text-slate-500 font-bold uppercase text-center">Controle de Compras v4.5</p>
+            </div>
         </aside>
 
         <main class="flex-1 p-4 lg:p-8">
@@ -82,7 +89,7 @@
                     </div>
 
                     <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
-                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-500 uppercase">Limpar</button>
+                        <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-400 hover:text-emerald-400 uppercase transition-colors">Limpar Tudo</button>
                         <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 font-bold text-xs uppercase shadow-lg">✅ Salvar Registro</button>
                     </div>
                 </div>
@@ -101,7 +108,7 @@
                             <div class="flex gap-2">
                                 <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400">🖊️ EDITAR</button>
                                 <button onclick="removerSelecionados()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-red-400">🗑️ EXCLUIR</button>
-                                <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400">📋 E-MAILS</button>
+                                <button onclick="copiarEmails()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-emerald-400">📋 COPIAR E-MAILS</button>
                             </div>
                         </div>
                         <table class="w-full text-left border-t border-slate-700">
@@ -109,7 +116,7 @@
                                 <tr>
                                     <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
                                     <th class="p-4 w-1/4">Fornecedor</th>
-                                    <th class="p-4 w-1/3 text-center">Contato Detalhado</th>
+                                    <th class="p-4 w-1/3">Contato Detalhado</th>
                                     <th class="p-4">Material / Descrição</th>
                                 </tr>
                             </thead>
@@ -153,11 +160,6 @@
 
             if(!nome) return alert("Preencha o nome!");
 
-            if(!editId) {
-                const duplication = baseDados.find(f => f.nome === nome && f.email === email && f.tel === tel);
-                if(duplication) return alert("Este registro já existe!");
-            }
-
             const registro = {
                 id: editId ? Number(editId) : Date.now(),
                 nome,
@@ -174,14 +176,13 @@
 
             localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
             limparCampos();
-            renderizar();
         }
 
         function renderizar() {
             const termo = document.getElementById('i_busca_global').value.toLowerCase();
             const container = document.getElementById('tabelaBody');
             const filtrados = baseDados.filter(f => 
-                f.nome.toLowerCase().includes(termo) || f.material.toLowerCase().includes(termo) || f.email.toLowerCase().includes(termo)
+                f.nome.toLowerCase().includes(termo) || f.material.toLowerCase().includes(termo) || f.email.toLowerCase().includes(termo) || f.contato.toLowerCase().includes(termo)
             );
 
             document.getElementById('contador').innerText = `${filtrados.length} REGISTROS`;
@@ -190,28 +191,27 @@
                 <tr class="hover:bg-slate-800">
                     <td class="p-4 text-center w-12"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
                     <td class="p-4 td-nome">${f.nome}</td>
-                    <td class="p-4 text-center td-contato">
-                        <div class="mb-1"><span class="contact-icon">👤</span> ${f.contato}</div>
-                        <div class="text-blue-400 text-[10px] mb-1"><span class="contact-icon">✉️</span> ${f.email}</div>
-                        <div class="text-emerald-400 font-bold"><span class="contact-icon">📞</span> ${f.tel}</div>
+                    <td class="p-4 td-contato">
+                        <div class="contact-line"><span class="contact-icon">👤</span> ${f.contato}</div>
+                        <div class="contact-line text-blue-400 text-[10px]"><span class="contact-icon">✉️</span> ${f.email}</div>
+                        <div class="contact-line text-emerald-400 font-bold"><span class="contact-icon">📞</span> ${f.tel}</div>
                     </td>
                     <td class="p-4 td-material">${f.material}</td>
                 </tr>
             `).join('');
 
-            // Atualiza Datalist
             const dl = document.getElementById('listaMateriais');
             const mats = [...new Set(baseDados.map(f => f.material.split('\n')[0].trim()))].filter(m => m.length > 1).sort();
             dl.innerHTML = mats.map(m => `<option value="${m}">`).join('');
         }
 
         function limparCampos() {
-            ['i_nome', 'i_contato', 'i_email', 'i_tel', 'i_mat', 'i_sugestao', 'editId'].forEach(id => {
+            ['i_nome', 'i_contato', 'i_email', 'i_tel', 'i_mat', 'i_sugestao', 'editId', 'i_busca_global'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.value = '';
             });
             document.getElementById('btnSalvar').innerText = "✅ Salvar Registro";
-            renderizar();
+            renderizar(); // Chamado aqui para limpar a pesquisa rápida junto
         }
 
         function iniciarEdicao() {
@@ -225,13 +225,12 @@
                 document.getElementById('i_email').value = item.email;
                 document.getElementById('i_tel').value = item.tel;
                 document.getElementById('i_mat').value = item.material;
-                document.getElementById('btnSalvar').innerText = "💾 Atualizar";
+                document.getElementById('btnSalvar').innerText = "💾 Atualizar Registro";
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
         function selecionarTodos(s) { document.querySelectorAll('.chk-item').forEach(c => c.checked = s.checked); }
-        
         function removerSelecionados() {
             const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => Number(c.value));
             if(!sel.length || !confirm("Remover selecionados?")) return;
@@ -239,36 +238,29 @@
             localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
             renderizar();
         }
-
         function copiarEmails() {
             const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
             const emails = sel.length ? sel.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
-            if(emails) {
-                navigator.clipboard.writeText(emails).then(() => alert("E-mails copiados!"));
-            }
+            if(emails) navigator.clipboard.writeText(emails).then(() => alert("E-mails copiados!"));
         }
-
+        function exportar() {
+            const blob = new Blob([JSON.stringify(baseDados, null, 2)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `HUB_BACKUP.json`;
+            a.click();
+        }
         function importar(e) {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 try {
                     const novos = JSON.parse(ev.target.result);
-                    novos.forEach(n => {
-                        if(!baseDados.find(b => b.nome === n.nome && b.email === n.email)) baseDados.push(n);
-                    });
+                    novos.forEach(n => { if(!baseDados.find(b => b.nome === n.nome && b.email === n.email)) baseDados.push(n); });
                     localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
                     renderizar();
                 } catch { alert("Erro no arquivo!"); }
             };
             reader.readAsText(e.target.files[0]);
-        }
-
-        function exportar() {
-            const blob = new Blob([JSON.stringify(baseDados, null, 2)], {type: 'application/json'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `BASE_DADOS.json`;
-            a.click();
         }
     </script>
 </body>
