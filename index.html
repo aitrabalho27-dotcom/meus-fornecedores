@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub de Fornecedores - Dark Mode v4.5</title>
+    <title>Hub de Fornecedores - Base Única v4.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
@@ -23,40 +23,26 @@
         .input-padrao:focus { border-color: #10b981; background-color: #1e293b; }
         #i_email { text-transform: lowercase; }
 
-        #appSection { display: none; }
-        
-        /* SOLUÇÃO DEFINITIVA PARA O STICKY */
-        .main-container { overflow: visible; } /* Garante que o sticky não seja bloqueado */
+        /* Estilo para preservar as quebras de linha nas descrições elaboradas */
+        .text-descricao { color: #94a3b8; line-height: 1.5; white-space: pre-wrap; font-size: 11px; }
 
         .sticky-header-group {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background-color: #0f172a; /* Cor de fundo da página para não vazar transparência */
-            padding-top: 10px; /* Margem estética para descolar do topo do navegador */
+            position: sticky; top: 0; z-index: 100;
+            background-color: #0f172a; padding-top: 10px;
         }
 
         .inner-sticky {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px 12px 0 0;
-            border-bottom: 2px solid #0f172a;
+            background-color: #1e293b; border: 1px solid #334155;
+            border-radius: 12px 12px 0 0; border-bottom: 2px solid #0f172a;
         }
 
-        /* Tabela de dados encostada no cabeçalho fixo */
         .data-table-container {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            border-top: none;
-            border-radius: 0 0 12px 12px;
+            background-color: #1e293b; border: 1px solid #334155;
+            border-top: none; border-radius: 0 0 12px 12px;
         }
 
-        tr:hover { background-color: #334155 !important; }
-        .td-nome { font-weight: 700; color: #f1f5f9; text-transform: uppercase; padding: 1rem; }
-        .td-contato { font-weight: 500; color: #cbd5e1; padding: 1rem; }
-        .td-material { font-weight: 500; color: #94a3b8; text-transform: uppercase; padding: 1rem; }
-        .contact-icon { font-size: 11px; margin-right: 6px; }
+        tr:hover { background-color: #26334d !important; }
+        .td-nome { font-weight: 800; color: #f1f5f9; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -80,38 +66,37 @@
             <button onclick="location.reload()" class="mt-auto bg-slate-800 p-3 rounded-xl text-[10px] font-black text-slate-400 uppercase">Sair</button>
         </aside>
 
-        <main class="flex-1 p-4 lg:p-8 main-container">
+        <main class="flex-1 p-4 lg:p-8">
             <div class="max-w-6xl mx-auto space-y-6">
                 
                 <div class="card p-6 border-t-4 border-t-emerald-600">
-                    <h3 class="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">Novo Cadastro / Edição</h3>
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">Cadastro Estruturado (Base Única)</h3>
                     <input type="hidden" id="editId">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <input type="text" id="i_nome" placeholder="FORNECEDOR" class="input-padrao">
-                        <input type="text" id="i_contato" placeholder="CONTATO" class="input-padrao">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <input type="text" id="i_nome" placeholder="NOME DO FORNECEDOR" class="input-padrao">
+                        <input type="text" id="i_contato" placeholder="VENDEDOR / CONTATO" class="input-padrao">
                         <input type="text" id="i_email" placeholder="E-MAIL" class="input-padrao">
                         <input type="text" id="i_tel" maxlength="15" onkeyup="mascaraTelefone(this)" placeholder="TELEFONE" class="input-padrao text-emerald-400">
                         <div class="md:col-span-2">
-                            <input list="materiaisSugeridos" type="text" id="i_mat" placeholder="TIPO DE MATERIAL" class="input-padrao">
-                            <datalist id="materiaisSugeridos"></datalist>
+                            <textarea id="i_mat" placeholder="DESCRIÇÃO TÉCNICA E MATERIAIS..." class="input-padrao h-12 py-3" style="text-transform: uppercase;"></textarea>
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
                         <button onclick="limparCampos()" class="px-6 py-2 text-xs font-bold text-slate-500 uppercase">Limpar</button>
-                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase shadow-lg">✅ Salvar Fornecedor</button>
+                        <button id="btnSalvar" onclick="cadastrar()" class="btn-primary px-8 py-3 rounded-xl font-bold text-xs uppercase shadow-lg">✅ Salvar Registro</button>
                     </div>
                 </div>
 
                 <div class="card p-4 bg-slate-900 border-emerald-900/30">
-                    <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL..." class="w-full p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none uppercase">
+                    <input type="text" id="i_busca_global" onkeyup="renderizar()" placeholder="PESQUISA GLOBAL (NOME, MATERIAL OU E-MAIL)..." class="w-full p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-sm font-bold text-emerald-400 outline-none uppercase shadow-inner">
                 </div>
 
                 <div class="sticky-header-group">
                     <div class="inner-sticky">
                         <div class="p-4 flex justify-between items-center">
                             <div class="flex items-center gap-3">
-                                <h2 class="font-black text-slate-100 text-xs uppercase">Fornecedores</h2>
-                                <span id="contador" class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold border border-emerald-900/50">0 ENCONTRADOS</span>
+                                <h2 class="font-black text-slate-100 text-xs uppercase">Base de Fornecedores</h2>
+                                <span id="contador" class="text-[10px] bg-emerald-950 px-2 py-1 rounded text-emerald-400 font-bold border border-emerald-900/50">0</span>
                             </div>
                             <div class="flex gap-2">
                                 <button onclick="iniciarEdicao()" class="btn-outline px-3 py-2 rounded-lg text-[10px] font-bold text-orange-400">🖊️ EDITAR</button>
@@ -123,9 +108,9 @@
                             <thead class="text-[10px] font-black text-slate-500 uppercase bg-slate-800/50">
                                 <tr>
                                     <th class="p-4 w-12 text-center"><input type="checkbox" onclick="selecionarTodos(this)" class="accent-emerald-500"></th>
-                                    <th class="p-4">Fornecedor</th>
-                                    <th class="p-4 text-center">Contato / E-mail / Tel</th>
-                                    <th class="p-4">Material</th>
+                                    <th class="p-4 w-1/4">Fornecedor</th>
+                                    <th class="p-4 w-1/4 text-center">Contato</th>
+                                    <th class="p-4">Descrição Técnica / Materiais</th>
                                 </tr>
                             </thead>
                         </table>
@@ -160,24 +145,36 @@
             input.value = v;
         }
 
+        // Função de cadastro com verificação de duplicidade Nome+Email+Tel
         function cadastrar() {
-            const nome = document.getElementById('i_nome').value.trim();
+            const nome = document.getElementById('i_nome').value.trim().toUpperCase();
+            const contato = document.getElementById('i_contato').value.trim().toUpperCase();
+            const email = document.getElementById('i_email').value.trim().toLowerCase();
+            const tel = document.getElementById('i_tel').value.trim();
+            const mat = document.getElementById('i_mat').value.trim().toUpperCase();
             const editId = document.getElementById('editId').value;
-            if(!nome) return alert("O nome é obrigatório!");
 
-            const dados = {
+            if(!nome) return alert("O Nome é obrigatório!");
+
+            // Proteção contra duplicados (apenas se for novo cadastro)
+            if (!editId) {
+                const jaExiste = baseDados.find(f => 
+                    f.nome === nome && f.email === email && f.tel === tel
+                );
+                if (jaExiste) return alert("Atenção: Este fornecedor já está cadastrado com este e-mail e telefone.");
+            }
+
+            const registro = {
                 id: editId ? Number(editId) : Date.now(),
-                nome: nome.toUpperCase(),
-                contato: document.getElementById('i_contato').value.toUpperCase(),
-                email: document.getElementById('i_email').value.toLowerCase(),
-                tel: document.getElementById('i_tel').value,
-                material: document.getElementById('i_mat').value.toUpperCase()
+                nome, contato, email, tel, material: mat
             };
 
             if(editId) {
-                const index = baseDados.findIndex(f => f.id === dados.id);
-                if(index !== -1) baseDados[index] = dados;
-            } else { baseDados.unshift(dados); }
+                const index = baseDados.findIndex(f => f.id === registro.id);
+                if(index !== -1) baseDados[index] = registro;
+            } else {
+                baseDados.unshift(registro);
+            }
 
             localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
             limparCampos();
@@ -188,47 +185,68 @@
             const termo = document.getElementById('i_busca_global').value.toLowerCase();
             const container = document.getElementById('tabelaBody');
             const filtrados = baseDados.filter(f => 
-                f.nome.toLowerCase().includes(termo) || f.contato.toLowerCase().includes(termo) ||
-                f.email.toLowerCase().includes(termo) || f.tel.toLowerCase().includes(termo) ||
-                f.material.toLowerCase().includes(termo)
+                f.nome.toLowerCase().includes(termo) || 
+                f.material.toLowerCase().includes(termo) ||
+                f.email.toLowerCase().includes(termo) ||
+                f.tel.includes(termo)
             );
 
-            document.getElementById('contador').innerText = `${filtrados.length} ENCONTRADOS`;
+            document.getElementById('contador').innerText = `${filtrados.length} REGISTROS`;
             
             container.innerHTML = filtrados.map(f => `
                 <tr class="hover:bg-slate-800">
                     <td class="p-4 text-center w-12"><input type="checkbox" class="chk-item accent-emerald-500" value="${f.id}"></td>
-                    <td class="p-4 td-nome">${f.nome}</td>
-                    <td class="p-4 text-center td-contato">
-                        <div class="mb-1"><span class="contact-icon">👤</span> ${f.contato}</div>
-                        <div class="text-blue-400 text-[11px] mb-1"><span class="contact-icon">✉️</span> ${f.email}</div>
-                        <div class="text-emerald-400 font-bold"><span class="contact-icon">📞</span> ${f.tel}</div>
+                    <td class="p-4 td-nome w-1/4">${f.nome}</td>
+                    <td class="p-4 text-center w-1/4">
+                        <div class="font-bold text-slate-300 uppercase">${f.contato}</div>
+                        <div class="text-blue-400 font-medium">${f.email}</div>
+                        <div class="text-emerald-400 font-black">${f.tel}</div>
                     </td>
-                    <td class="p-4 td-material">${f.material}</td>
+                    <td class="p-4 text-descricao">${f.material}</td>
                 </tr>
             `).join('');
-            
-            // Atualizar Sugestões
-            const datalist = document.getElementById('materiaisSugeridos');
-            const materiaisUnicos = [...new Set(baseDados.map(f => f.material))].sort();
-            datalist.innerHTML = materiaisUnicos.filter(m => m?.trim()).map(m => `<option value="${m}">`).join('');
+        }
+
+        // Importação inteligente: ignora itens que já existem (Nome+Email+Tel)
+        function importar(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const dadosImportados = JSON.parse(ev.target.result);
+                    let contNovos = 0;
+                    dadosImportados.forEach(itemImp => {
+                        const duplicado = baseDados.find(f => 
+                            f.nome.toUpperCase() === itemImp.nome.toUpperCase() && 
+                            f.email.toLowerCase() === itemImp.email.toLowerCase() && 
+                            f.tel === itemImp.tel
+                        );
+                        if(!duplicado) {
+                            baseDados.push(itemImp);
+                            contNovos++;
+                        }
+                    });
+                    localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
+                    renderizar();
+                    alert(`${contNovos} novos registros importados. Duplicados foram ignorados.`);
+                } catch { alert("Erro ao ler o arquivo JSON."); }
+            };
+            reader.readAsText(e.target.files[0]);
         }
 
         function limparCampos() {
             ['i_nome', 'i_contato', 'i_email', 'i_tel', 'i_mat', 'editId', 'i_busca_global'].forEach(id => {
-                if(document.getElementById(id)) document.getElementById(id).value = '';
+                document.getElementById(id).value = '';
             });
-            document.getElementById('btnSalvar').innerText = "✅ Salvar Fornecedor";
+            document.getElementById('btnSalvar').innerText = "✅ Salvar Registro";
             renderizar();
         }
 
-        function copiarEmails() {
-            const selecionados = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => 
-                baseDados.find(f => f.id == c.value)?.email
-            ).filter(e => e);
-            const emails = selecionados.length ? selecionados.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
-            if(!emails) return alert("Nenhum e-mail encontrado!");
-            navigator.clipboard.writeText(emails).then(() => alert("Copiado!"));
+        function exportar() {
+            const blob = new Blob([JSON.stringify(baseDados, null, 2)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `BASE_FORNECEDORES_UNICA.json`;
+            a.click();
         }
 
         function iniciarEdicao() {
@@ -247,38 +265,21 @@
             }
         }
 
-        function selecionarTodos(source) {
-            document.querySelectorAll('.chk-item').forEach(c => c.checked = source.checked);
-        }
-
+        function selecionarTodos(s) { document.querySelectorAll('.chk-item').forEach(c => c.checked = s.checked); }
+        
         function removerSelecionados() {
             const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => Number(c.value));
-            if(!sel.length || !confirm(`Excluir ${sel.length} item(ns)?`)) return;
+            if(!sel.length || !confirm("Excluir selecionados?")) return;
             baseDados = baseDados.filter(f => !sel.includes(f.id));
             localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
             renderizar();
         }
 
-        function exportar() {
-            const blob = new Blob([JSON.stringify(baseDados, null, 2)], {type: 'application/json'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `HUB_BACKUP_DARK.json`;
-            a.click();
-        }
-
-        function importar(e) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try {
-                    const dados = JSON.parse(ev.target.result);
-                    baseDados = [...dados, ...baseDados.filter(b => !dados.find(d => d.id === b.id))];
-                    localStorage.setItem('db_hub_compras', JSON.stringify(baseDados));
-                    renderizar();
-                    alert("Importado!");
-                } catch(err) { alert("Erro ao importar!"); }
-            };
-            reader.readAsText(e.target.files[0]);
+        function copiarEmails() {
+            const sel = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => baseDados.find(f => f.id == c.value)?.email).filter(e => e);
+            const emails = sel.length ? sel.join('; ') : baseDados.map(f => f.email).filter(e => e).join('; ');
+            if(!emails) return alert("Nenhum e-mail para copiar.");
+            navigator.clipboard.writeText(emails).then(() => alert("E-mails copiados!"));
         }
     </script>
 </body>
